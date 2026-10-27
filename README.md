@@ -41,3 +41,6 @@ See `PhotoStore.kt` and `StillStore.kt` for the manifest formats. The procedural
 - [Inter](https://rsms.me/inter/) typeface (SIL Open Font License); see `licenses/`.
 - Weather and air quality from [Open-Meteo](https://open-meteo.com/).
 - ZIP lookup from [Zippopotam.us](https://zippopotam.us/).
+
+## License
+The code is released under the [MIT License](LICENSE). The bundled Inter font keeps its own SIL Open Font License (`licenses/Inter-OFL.txt`).
