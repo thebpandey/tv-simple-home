@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Used only by WeatherFetcher (Open-Meteo forecast). Nothing else touches the network. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:banner="@drawable/banner"
+        android:icon="@drawable/ic_launcher"
+        android:label="Home"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Home">
+
+        <activity
+            android:name=".MainActivity"
+            android:banner="@drawable/banner"
+            android:exported="true"
+            android:label="Home"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
+            android:stateNotNeeded="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
