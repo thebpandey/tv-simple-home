@@ -129,6 +129,17 @@ class DockSpec(val style: DockStyle) {
     val pillSp = 15f * scale
     val extraRightDp = s(90f) // invisible end padding so the scroll range covers the pushed-out tiles
 
+    /** Menu pills grow to this much when focused (they are a row, not a magnifying dock: one pill at a time). */
+    val pillMag = 1.06f
+    /** Pill row padding on every side: half the pill's growth + the lift + the 2dp ring + 4dp spare, so a focused pill is never clipped. */
+    val pillRowPadDp = pillWDp * (pillMag - 1f) / 2f + neighbourLiftDp + 2f + 4f
+    /** Shelf width while the menu is open: [back chevron | four pills] only. */
+    val expandedShelfDp = pillXDp + 4 * pillWDp + 3 * pillGapDp + shelfPadDp
+    /** How far the focused menu button grows (its slot widens by this and the neighbours are pushed). */
+    val menuGrowthDp = buttonDp * (magFocus - 1f)
+    /** Room the budget keeps because the menu button is fixed-size while shrunk favorites are not: the menu-focused growth beyond the favorites-focused one. */
+    val menuExtraAllowanceDp: Float get() = maxOf(0f, menuGrowthDp + ((magNear - 1f) + (magFar - 1f)) * minBaseDp - magExtra * minBaseDp)
+
     fun cardHeightDp(baseDp: Float) = baseDp / aspect
     fun tileHeightDp(baseDp: Float) = labelDp + cardHeightDp(baseDp)
 
@@ -177,13 +188,14 @@ object DockFit {
 
     fun fit(spec: DockSpec, availableDp: Float, count: Int): Fit {
         val n = count.coerceAtLeast(1)
-        val ideal = (availableDp - spec.gapDp * (n - 1)) / (n + spec.magExtra)
+        val ideal = (availableDp - spec.menuExtraAllowanceDp - spec.gapDp * (n - 1)) / (n + spec.magExtra)
         val base = if (ideal >= spec.minBaseDp) ideal.coerceAtMost(spec.maxBaseDp) else spec.minBaseDp
         return Fit(base, spec.cardHeightDp(base), scrolls = ideal < spec.minBaseDp)
     }
 
     /** Width the tiles need at full magnification for [count] tiles of [baseDp]. */
-    fun neededDp(spec: DockSpec, baseDp: Float, count: Int): Float = baseDp * (count + spec.magExtra) + spec.gapDp * (count - 1).coerceAtLeast(0)
+    fun neededDp(spec: DockSpec, baseDp: Float, count: Int): Float =
+        baseDp * (count + spec.magExtra) + spec.gapDp * (count - 1).coerceAtLeast(0) + spec.menuExtraAllowanceDp
 }
 
 /** Pure dock geometry in dp: where the unfocused cards sit relative to the shelf, and how the dock is centred. */
@@ -232,5 +244,42 @@ object CreditPlacement {
         val corner = LayoutBudget.SAFE_TOP_BOTTOM_DP + spec.bottomGapDp
         val creditLeft = RIGHT_EDGE_DP - creditWidthDp
         return if (dockRightDp + CLEARANCE_DP <= creditLeft) corner else corner + shelfHeightDp + ABOVE_SHELF_GAP_DP
+    }
+}
+
+/** Pure model of where a focused dock item ends up, in dp from the dock's left clip edge (the 48dp safe edge). */
+object DockExtents {
+    const val NONE = -2
+    const val MENU = -1
+
+    data class Extent(val leftDp: Float, val rightDp: Float)
+
+    /** Growth of the whole dock content with [focus] (MENU, a favorite index or NONE). */
+    fun growthDp(spec: DockSpec, count: Int, baseDp: Float, focus: Int): Float = when {
+        focus == MENU -> spec.menuGrowthDp + (0 until count).sumOf { (baseDp * (DockMath.scaleAt(it + 1, spec) - 1f)).toDouble() }.toFloat()
+        focus >= 0 -> DockGeometry.growthDp(spec, count, baseDp, focus)
+        else -> 0f
+    }
+
+    /**
+     * Visual bounds (scale, slot push and the dock's re-centring included) of the focused item. The magnified menu button keeps its left
+     * edge at the slot's left (its growth goes into its slot and pushes the divider and favorites), so it can never leave the shelf.
+     */
+    fun focused(spec: DockSpec, count: Int, baseDp: Float, scrolls: Boolean, dockW: Float, focus: Int): Extent {
+        val content = if (scrolls) dockW else DockGeometry.restWidthDp(spec, count, baseDp) + growthDp(spec, count, baseDp, focus)
+        val offset = DockGeometry.offsetDp(dockW, content)
+        if (focus == MENU) return Extent(offset + spec.menuInsetDp, offset + spec.menuInsetDp + spec.buttonDp * spec.magFocus)
+        val scales = FloatArray(count) { DockMath.scaleAt(kotlin.math.abs(it - focus), spec) }
+        val shifts = DockMath.shifts(scales, baseDp)
+        val layoutLeft = spec.favStartDp + spec.hPadDp + spec.rowHPadDp + focus * (baseDp + spec.gapDp)
+        val left = offset + DockMath.visualLeft(layoutLeft, shifts[focus], baseDp, scales[focus])
+        return Extent(left, left + baseDp * scales[focus])
+    }
+
+    /** Bounds of expanded-menu pill [index] (focused, with its ring) in dp from the shelf's left edge. */
+    fun pill(spec: DockSpec, index: Int): Extent {
+        val grow = spec.pillWDp * (spec.pillMag - 1f) / 2f
+        val left = spec.pillXDp + index * (spec.pillWDp + spec.pillGapDp) - grow - 2f
+        return Extent(left, left + spec.pillWDp + 2 * grow + 4f)
     }
 }

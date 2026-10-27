@@ -61,7 +61,6 @@ private const val SAFE_VERT_DP = 27
 private const val PREF_IDLE = "idle_hide"
 private const val PREF_DOCK_STYLE = "dock_style"
 private const val PREF_US_HOLIDAYS = "us_holidays"
-private const val PILL_ROW_PAD_BASE_DP = 10f // x dock scale: headroom for the focused pill (lift, 1.12x, border)
 private const val PREF_PHOTO_SOURCE = "photo_source" // legacy single Source radio, migrated into PREF_SOURCES
 private const val PREF_SOURCES = "wallpaper_sources"
 private const val DOCK_MS = 220L
@@ -89,7 +88,7 @@ class MainActivity : Activity() {
     private lateinit var menuTooltip: TextView
     private var dockStyle = DockStyle.ICONS
     private var spec = LayoutBudget.ICONS_SPEC
-    private val pillRowPadDp get() = PILL_ROW_PAD_BASE_DP * spec.scale
+    private val pillRowPadDp get() = spec.pillRowPadDp
     private lateinit var iconCache: IconCache
     private var dockBaseDp = LayoutBudget.ICONS_SPEC.maxBaseDp
     private var dockScrolls = false
@@ -342,6 +341,7 @@ class MainActivity : Activity() {
             themed.add { setTextColor(Palette.text); background = Glass.drawable(this@MainActivity, dp(12).toFloat()) }
         }
         menuButton.onTooltip = { show -> showMenuTooltip(show) }
+        menuButton.onDockFocus = { focused -> onMenuFocus(focused) }
         themed.add {
             shelf.background = Glass.drawable(this, dpf(spec.shelfCornerDp).toFloat())
             dockDivider.setBackgroundColor((Palette.text and 0x00FFFFFF) or (0x4D shl 24)) // 1px hairline at 30% opacity
@@ -785,7 +785,7 @@ class MainActivity : Activity() {
     }
 
     /** Width of the shelf while the menu is open: [back chevron | four pills] only. */
-    private fun expandedShelfDp(): Float = spec.pillXDp + 4 * spec.pillWDp + 3 * spec.pillGapDp + spec.shelfPadDp
+    private fun expandedShelfDp(): Float = spec.expandedShelfDp
 
     /** Grows the shelf with the magnification / menu and re-centres the whole dock in step (growth splits evenly left and right). */
     private fun updateShelf(durationMs: Long) {
@@ -867,23 +867,38 @@ class MainActivity : Activity() {
             for (i in 0 until favRow.childCount) (favRow.getChildAt(i) as? Tile)?.let { if (it !== tile) it.showLabel(false) } // one label at a time
             magnify(favRow.indexOfChild(tile))
         } else {
-            favRow.post { if (!favRow.hasFocus()) magnify(-1) }
+            favRow.post { if (!favRow.hasFocus() && !menuButton.isFocused) magnify(-1) }
         }
     }
 
-    /** Slides and scales every dock tile; see [DockMath] for the geometry (tests prove tiles never overlap). */
-    private fun magnify(center: Int) {
+    /** Focus on the menu button: it magnifies as a dock item, its slot widens and everything to its right is pushed. */
+    private fun onMenuFocus(focused: Boolean) {
+        if (focused) magnify(-1, menuFocused = true)
+        else menuButton.post { if (!menuButton.isFocused && !favRow.hasFocus()) magnify(-1) }
+    }
+
+    /**
+     * Slides and scales every dock item; see [DockMath] and [DockExtents] for the geometry (tests prove nothing overlaps or leaves the dock).
+     * With [menuFocused] the button is the magnified item: its growth widens its slot, pushes the divider and favorites, and the dock re-centres.
+     */
+    private fun magnify(center: Int, menuFocused: Boolean = false) {
         val base = dpf(dockBaseDp).toFloat()
         val n = favRow.childCount
-        val scales = FloatArray(n) { DockMath.scaleAt(if (center < 0) 99 else kotlin.math.abs(it - center), spec) }
+        val distance = { i: Int -> if (menuFocused) i + 1 else if (center < 0) 99 else kotlin.math.abs(i - center) }
+        val scales = FloatArray(n) { DockMath.scaleAt(distance(it), spec) }
         val shifts = DockMath.shifts(scales, base)
-        shelfGrowthPx = scales.sumOf { (base * (it - 1f)).toDouble() }.toFloat()
+        val menuPush = if (menuFocused && !menuExpanded) dpf(spec.menuGrowthDp).toFloat() else 0f
+        shelfGrowthPx = menuPush + scales.sumOf { (base * (it - 1f)).toDouble() }.toFloat()
         updateShelf(DOCK_MS)
         for (i in 0 until n) {
             val t = favRow.getChildAt(i) as? Tile ?: continue
-            t.animateTo(scales[i], DockMath.liftAt(if (center < 0) 99 else kotlin.math.abs(i - center), spec), shifts[i], DOCK_MS, focused = i == center)
+            t.animateTo(scales[i], DockMath.liftAt(distance(i), spec), shifts[i] + menuPush, DOCK_MS, focused = i == center && !menuFocused)
         }
-        if (center >= 0) ensureDockVisible(favRow.getChildAt(center), scales[center], shifts[center])
+        dockDivider.animate().translationX(menuPush).setDuration(DOCK_MS).setInterpolator(Motion.EASE).start()
+        // Pivot is the bottom centre; shifting by half the growth keeps the button's left edge at its slot edge, so it never leaves the shelf.
+        if (menuFocused) menuButton.animateTo(spec.magFocus, spec.liftDp, menuPush / 2f, DOCK_MS) else menuButton.animateTo(1f, 0f, 0f, DOCK_MS)
+        if (menuFocused && dockScrolls) favScroller.smoothScrollTo(0, 0)
+        if (center >= 0 && !menuFocused) ensureDockVisible(favRow.getChildAt(center), scales[center], shifts[center])
     }
 
     /** Scrolls the dock so the magnified focused tile, with 12dp spare (plus the fading edge when scrolling), is fully visible. */
@@ -919,7 +934,7 @@ class MainActivity : Activity() {
     }
 
     private fun magnifyPills(center: Int) {
-        val scales = FloatArray(pills.size) { if (it == center) 1.06f else 1f }
+        val scales = FloatArray(pills.size) { if (it == center) spec.pillMag else 1f }
         val shifts = DockMath.shifts(scales, dpf(spec.pillWDp).toFloat())
         pills.forEachIndexed { i, p -> p.animateTo(scales[i], if (i == center) spec.neighbourLiftDp else 0f, shifts[i], 150) }
     }

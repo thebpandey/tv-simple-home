@@ -413,12 +413,18 @@ class MenuButton(context: Context) : FocusItem(context) {
         isFocusableInTouchMode = true
         isClickable = true
         setOnFocusChangeListener { _, focused ->
-            // The menu button is a dock item: it magnifies like the focused icon (grows from its bottom edge, lifts) and shows its tooltip.
-            val s = if (focused) spec.magFocus else 1f
-            animate().scaleX(s).scaleY(s).translationY(if (focused) -context.dpf(spec.liftDp).toFloat() else 0f).setDuration(220)
-                .setInterpolator(Motion.EASE).start()
             onTooltip?.invoke(focused)
+            onDockFocus?.invoke(focused) // the activity magnifies it as part of the dock (slot, push and re-centring included)
         }
+    }
+
+    /** Called on focus changes so the dock can lay out the magnified button like any other dock item. */
+    var onDockFocus: ((Boolean) -> Unit)? = null
+
+    /** Same curve and duration as the other dock items; pivot is the bottom centre. */
+    fun animateTo(scale: Float, liftDp: Float, translateXPx: Float, durationMs: Long) {
+        animate().scaleX(scale).scaleY(scale).translationY(-context.dpf(liftDp).toFloat()).translationX(translateXPx)
+            .setDuration(durationMs).setInterpolator(Motion.EASE).start()
     }
 
     /** Shows or hides the "Menu" tooltip the activity keeps above the button. */
