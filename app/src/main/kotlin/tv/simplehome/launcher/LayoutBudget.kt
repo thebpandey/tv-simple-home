@@ -71,7 +71,7 @@ object LayoutBudget {
     const val WEATHER_WIDGET_DP = 19 + 17 + 15 + 20
 
     // Fixed screen positions (dp from the top) of the content the scrim has to protect.
-    val SCRIM_HEADER_END_DP = 150 // the top scrim holds its full strength down to here (clock, date, weather and the banner title), then fades out
+    val SCRIM_HEADER_END_DP = SAFE_TOP_BOTTOM_DP + header(true) // 175: the top scrim holds its full strength through the whole header, banner lines included
     val HEADER_END_DP = SAFE_TOP_BOTTOM_DP + header(true) // 151
     val QUOTE_TOP_DP = HEADER_END_DP + (centerDp(true) - QUOTE_MIN_DP) / 2f // top of the quote box, centred in the free centre
     val QUOTE_BOTTOM_DP = QUOTE_TOP_DP + QUOTE_MIN_DP

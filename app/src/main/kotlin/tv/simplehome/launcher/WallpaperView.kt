@@ -1,10 +1,10 @@
 package tv.simplehome.launcher
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.Shader
+import android.graphics.Rect
 import android.util.Log
 import android.view.Choreographer
 import android.view.View
@@ -23,11 +23,13 @@ class WallpaperView(context: Context) : View(context) {
 
     private val scenes = arrayOfNulls<Scene>(WallpaperSchedule.KEY_SPACE)
     private val building = BooleanArray(WallpaperSchedule.KEY_SPACE)
+    /** Measured legibility of each built photo or painting (null for procedural scenes), see [Legibility]. */
+    private val needs = arrayOfNulls<Legibility.Needs>(WallpaperSchedule.KEY_SPACE)
     private var executor: ExecutorService? = null
     private var generation = 0
 
     private val fadePaint = Paint()
-    private val scrimPaint = Paint()
+    private val scrimPaint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val dimPaint = Paint().apply { color = 0xFF000000.toInt() }
     private var dimLevel = 0f // 0..1, animated: the wallpaper dims behind All apps
 
@@ -46,8 +48,11 @@ class WallpaperView(context: Context) : View(context) {
     private var memoKey: Int? = null
     /** Told what to credit whenever the shown wallpaper changes: "Photo: X / Unsplash" or null for non-photos. */
     var onWallpaperChanged: ((String?) -> Unit)? = null
-    /** Brightness (0..255, quote band) of the photo or painting now shown, or null for a procedural scene; drives the light/dark UI. */
-    var onLumaChanged: ((Int?) -> Unit)? = null
+    /**
+     * Brightness (0..255, quote band, from the manifest) and measured legibility of the photo or painting now shown, both null for a
+     * procedural scene; they drive the light/dark UI. For an image it fires once the image is decoded and measured.
+     */
+    var onToneChanged: ((Int?, Legibility.Needs?) -> Unit)? = null
     private var festivalKey: Int? = null
     private var festivalTheme: String? = null
     private var dayVariant = false
@@ -224,16 +229,17 @@ class WallpaperView(context: Context) : View(context) {
         if (key == null) {
             visibility = GONE
             current = -1
-            onLumaChanged?.invoke(null)
+            onToneChanged?.invoke(null, null)
             dropScenes(keep = -1)
             return
         }
         visibility = VISIBLE
         current = key
         onWallpaperChanged?.invoke(creditFor(key))
-        onLumaChanged?.invoke(lumaFor(key))
         dropScenes(keep = key)
-        ensureBuilt(key)
+        // An image's tone is reported when it has been measured (in the build callback if it is not built yet), so the UI mode is
+        // decided once, from the measurement, instead of flipping when the measurement arrives.
+        if (ensureBuilt(key) || !isImageKey(key)) notifyTone(key)
         frameMs = System.nanoTime() / 1_000_000
         lastFrameMs = -1
         invalidate()
@@ -248,33 +254,68 @@ class WallpaperView(context: Context) : View(context) {
         val ex = executor ?: Executors.newSingleThreadExecutor().also { executor = it }
         val gen = generation
         ex.execute {
-            val scene = createSceneForKey(key)
+            val (scene, measured) = createSceneForKey(key)
             post {
                 building[key] = false
-                if (gen == generation && started) { scenes[key] = scene; invalidate() }
+                if (gen == generation && started) {
+                    scenes[key] = scene
+                    needs[key] = measured
+                    if (key == current) { notifyTone(key); rebuildScrim(width, height) }
+                    invalidate()
+                }
             }
         }
         return false
     }
 
-    private fun createSceneForKey(key: Int): Scene {
+    private fun isImageKey(key: Int) = WallpaperSchedule.isStillKey(key) || WallpaperSchedule.isPhotoKey(key)
+
+    private fun notifyTone(key: Int) = onToneChanged?.invoke(lumaFor(key), needs.getOrNull(key))
+
+    private fun createSceneForKey(key: Int): Pair<Scene, Legibility.Needs?> {
         if (WallpaperSchedule.isStillKey(key)) {
-            val item = stills.getOrNull(key - WallpaperSchedule.STILL_BASE) ?: return EmptyScene
-            val bmp = PhotoStore.decodeFile(item.file, item.width, item.height, width.coerceAtLeast(1920), height.coerceAtLeast(1080)) ?: return EmptyScene
-            return StillScene(bmp, StillMapping.overlayFor(item.entry))
+            val item = stills.getOrNull(key - WallpaperSchedule.STILL_BASE) ?: return EmptyScene to null
+            val bmp = PhotoStore.decodeFile(item.file, item.width, item.height, width.coerceAtLeast(1920), height.coerceAtLeast(1080)) ?: return EmptyScene to null
+            return StillScene(bmp, StillMapping.overlayFor(item.entry)) to measure(bmp)
         }
         if (WallpaperSchedule.isPhotoKey(key)) {
-            val item = photos.getOrNull(key - WallpaperSchedule.PHOTO_BASE) ?: return EmptyScene
+            val item = photos.getOrNull(key - WallpaperSchedule.PHOTO_BASE) ?: return EmptyScene to null
             // One photo at a time, decoded here on the builder thread at about the display size.
-            val bmp = PhotoStore.decode(item, width.coerceAtLeast(1920), height.coerceAtLeast(1080)) ?: return EmptyScene
-            return PhotoScene(bmp, item.entry.night)
+            val bmp = PhotoStore.decode(item, width.coerceAtLeast(1920), height.coerceAtLeast(1080)) ?: return EmptyScene to null
+            return PhotoScene(bmp, item.entry.night) to measure(bmp)
         }
         val day = WallpaperSchedule.isDayKey(key)
         val base = WallpaperSchedule.baseKey(key)
         val index = base / WallpaperSchedule.KEY_MULT
         val variant = base % WallpaperSchedule.KEY_MULT
-        return if (index < WallpaperSchedule.SCENE_COUNT) createScene(index, day)
+        val scene = if (index < WallpaperSchedule.SCENE_COUNT) createScene(index, day)
         else createFestivalScene(WallpaperSchedule.FESTIVAL_SCENE_IDS[index - WallpaperSchedule.SCENE_COUNT], variant, day)
+        return scene to null
+    }
+
+    /** Grey histograms of the header text areas and the quote column (every 4th pixel both ways), turned into veil needs. Builder thread. */
+    private fun measure(bmp: Bitmap): Legibility.Needs {
+        val header = IntArray(256)
+        val quote = IntArray(256)
+        val row = IntArray(bmp.width)
+        val sx = bmp.width / 960f
+        val sy = bmp.height / 540f
+        fun scan(hist: IntArray, xs: ClosedFloatingPointRange<Float>, ys: ClosedFloatingPointRange<Float>) {
+            val x0 = (xs.start * sx).toInt().coerceIn(0, bmp.width)
+            val x1 = (xs.endInclusive * sx).toInt().coerceIn(0, bmp.width)
+            var y = (ys.start * sy).toInt().coerceIn(0, bmp.height)
+            val y1 = (ys.endInclusive * sy).toInt().coerceIn(0, bmp.height)
+            while (y < y1) {
+                bmp.getPixels(row, 0, bmp.width, 0, y, bmp.width, 1)
+                var x = x0
+                while (x < x1) { hist[Legibility.luma(row[x])]++; x += 4 }
+                y += 4
+            }
+        }
+        scan(header, Legibility.HEADER_LEFT_X_DP, Legibility.HEADER_Y_DP)
+        scan(header, Legibility.HEADER_RIGHT_X_DP, Legibility.HEADER_Y_DP)
+        scan(quote, Legibility.QUOTE_X_DP, Legibility.QUOTE_Y_DP)
+        return Legibility.needs(header, quote)
     }
 
     /**
@@ -286,6 +327,7 @@ class WallpaperView(context: Context) : View(context) {
             val old = scenes[i] ?: continue
             if (i == keep) continue
             scenes[i] = null
+            needs[i] = null
             postDelayed({ old.release() }, 1500)
         }
     }
@@ -308,7 +350,7 @@ class WallpaperView(context: Context) : View(context) {
         fadeMs = WallpaperSchedule.fadeDurationMs(fromKey, next)
         current = next
         onWallpaperChanged?.invoke(creditFor(next))
-        onLumaChanged?.invoke(lumaFor(next))
+        notifyTone(next)
         fading = true
         fadeStartMs = now
     }
@@ -321,30 +363,51 @@ class WallpaperView(context: Context) : View(context) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) = rebuildScrim(w, h)
 
-    private var scrimDay = false
-    private var scrimBoost = 1f
-    private var scrimTop = -1f // top veil strength for images, -1 for scenes (they keep their tuned plateau)
+    /** What the current scrim mask was built for; the mask is rebuilt only when this changes. */
+    private data class ScrimKey(val day: Boolean, val boost: Float, val top: Float?, val quote: Float?)
+    private var scrimKey: ScrimKey? = null
+    private var scrimFor = Int.MIN_VALUE
+    private var scrimForDay = false
+    private var scrimForNeeds: Legibility.Needs? = null
+    private var scrimMask: Bitmap? = null
+    private val scrimSrc = Rect()
+    private val scrimDst = Rect()
 
-    /** Images get a top veil of 0.18 (dark) to 0.40 (bright) by the manifest luma; photos without one are treated as bright-ish. */
-    private fun topAlphaFor(key: Int): Float =
-        if (!WallpaperSchedule.isPhotoKey(key)) -1f else ScrimSpec.topAlpha(lumaFor(key) ?: 150, uiDay)
+    /**
+     * Measured images get exactly the veil their pixels need for the current UI mode (see [Legibility]); an image still being measured
+     * and procedural scenes keep the brightness-scaled and tuned plateaus.
+     */
+    private fun wantedScrim(): ScrimKey {
+        val n = needs.getOrNull(current)
+        if (n != null) return ScrimKey(uiDay, 1f, n.header(uiDay), n.quote(uiDay))
+        val top = if (!WallpaperSchedule.isPhotoKey(current)) null else ScrimSpec.topAlpha(lumaFor(current) ?: 150, uiDay)
+        return ScrimKey(uiDay, scrimBoostFor(current), top, null)
+    }
 
-    /** Day/night swaps the scrim colour set (dark vs light frosted); gradient is rebuilt only when that flips. */
+    /** Builds the scrim as a quarter-resolution ALPHA_8 mask of [ScrimSpec.mask], drawn in white (light UI) or black (dark UI). */
     private fun rebuildScrim(w: Int, h: Int) {
-        if (h <= 0) return
-        val hDp = h / resources.displayMetrics.density
-        scrimBoost = scrimBoostFor(current)
-        scrimTop = topAlphaFor(current)
-        scrimPaint.shader = LinearGradient(
-            0f, 0f, 0f, h.toFloat(), ScrimSpec.colors(uiDay, scrimBoost, if (scrimTop < 0f) null else scrimTop), ScrimSpec.positions(hDp), Shader.TileMode.CLAMP,
-        )
-        scrimDay = uiDay
+        if (w <= 0 || h <= 0) return
+        val key = wantedScrim()
+        if (key == scrimKey && scrimMask != null) { scrimFor = current; scrimForDay = uiDay; scrimForNeeds = needs.getOrNull(current); return }
+        val mw = (w / 4).coerceAtLeast(1)
+        val mh = (h / 4).coerceAtLeast(1)
+        val bytes = ScrimSpec.mask(mw, mh, key.day, key.boost, key.top, key.quote)
+        val bmp = scrimMask?.takeIf { it.width == mw && it.height == mh } ?: Bitmap.createBitmap(mw, mh, Bitmap.Config.ALPHA_8).also { scrimMask = it }
+        bmp.copyPixelsFromBuffer(java.nio.ByteBuffer.wrap(bytes))
+        bmp.prepareToDraw()
+        scrimSrc.set(0, 0, mw, mh)
+        scrimDst.set(0, 0, w, h)
+        scrimPaint.color = if (key.day) 0xFFFFFFFF.toInt() else 0xFF000000.toInt()
+        scrimKey = key
+        scrimFor = current
+        scrimForDay = uiDay
+        scrimForNeeds = needs.getOrNull(current)
     }
 
     override fun onDraw(canvas: Canvas) {
         val t0 = if (BuildConfig.DEBUG) System.nanoTime() else 0L
-        val wantBoost = scrimBoostFor(current)
-        if (scrimDay != uiDay || scrimBoost != wantBoost || scrimTop != topAlphaFor(current)) rebuildScrim(width, height)
+        // Allocation-free staleness check; the mask itself is rebuilt only when the image, its measurement or the UI mode changed.
+        if (scrimFor != current || scrimForDay != uiDay || scrimForNeeds !== needs.getOrNull(current)) rebuildScrim(width, height)
         val tSec = (frameMs - baseMs) / 1000f
         val w = width.toFloat()
         val h = height.toFloat()
@@ -359,7 +422,7 @@ class WallpaperView(context: Context) : View(context) {
         } else if (current >= 0) {
             drawScene(canvas, current, tSec)
         }
-        canvas.drawRect(0f, 0f, w, h, scrimPaint)
+        scrimMask?.let { canvas.drawBitmap(it, scrimSrc, scrimDst, scrimPaint) }
         if (zoomed) canvas.restore()
         if (dimLevel > 0f) {
             dimPaint.alpha = (dimLevel * 255f).toInt()

@@ -27,11 +27,13 @@ object Palette {
     val text get() = if (day) ScrimSpec.DAY_TEXT else ScrimSpec.NIGHT_TEXT
     val muted get() = if (day) 0xFF12161E.toInt() else COLOR_MUTED
     val accent get() = if (day) 0xFF007AFF.toInt() else COLOR_ACCENT
-    val text70 get() = (text and 0x00FFFFFF) or (0xB2 shl 24)
-    val text60 get() = (text and 0x00FFFFFF) or (0x99 shl 24)
+    // Secondary text is a SOLID, slightly softer colour, never a translucent one: alpha let a bright or busy wallpaper show
+    // through the glyphs, which is what made the date, weather details and author hard to read on bright images.
+    val text70 get() = if (day) 0xFF2B2F36.toInt() else 0xFFEDEFF2.toInt()
+    val text60 get() = if (day) 0xFF3D424A.toInt() else 0xFFDCE0E5.toInt()
     val highlight get() = if (day) 0x14000000 else 0x24FFFFFF
     val shadow get() = if (day) 0xCCFFFFFF.toInt() else 0xCC000000.toInt()
-    val headerShadow get() = if (day) 0x80FFFFFF.toInt() else 0x73000000
+    val headerShadow get() = if (day) 0x99FFFFFF.toInt() else 0x73000000
     val quickCard get() = if (day) 0xD9FFFFFF.toInt() else COLOR_CARD
     /** Deeper version of a festival accent so it stays readable on the light scrim. */
     fun festival(accent: Int): Int =
@@ -76,8 +78,10 @@ class Tile(
     private val label = FlatTextView(context)
     private val cornerDp = if (style == TileStyle.BORDER) CORNER_DP.toFloat() else spec.tileCornerDp
     private val borderDp = if (style == TileStyle.PILL) 2 else 4
+    // GradientDrawable already insets its stroke by half the width, so the ring's OUTER edge is the card's edge. Its corner is
+    // reduced by that half width so the ring is concentric with the card's outline (no corner poking past it, no fill showing outside it).
     private val border = GradientDrawable().apply {
-        cornerRadius = context.dpf(cornerDp).toFloat()
+        cornerRadius = (context.dpf(cornerDp) - context.dp(borderDp) / 2f).coerceAtLeast(0f)
         setColor(Color.TRANSPARENT)
         setStroke(context.dp(borderDp), Palette.accent)
     }
@@ -86,9 +90,6 @@ class Tile(
     private val pillFocusFill = if (Palette.day) 0xCCF2F2F7.toInt() else 0xB32C2C2E.toInt()
     private val cardBackground = GradientDrawable()
 
-    // The card clips its content to its rounded outline and a stroke is centred on its shape's edge, so a plain border
-    // lost its outer half (it looked "cut off"). Inset by half the stroke so all 4dp sit inside the card.
-    private val borderInset = android.graphics.drawable.InsetDrawable(border, context.dp(borderDp / 2))
 
     init {
         orientation = VERTICAL
@@ -145,14 +146,15 @@ class Tile(
                     onDockFocus?.invoke(this, focused)
                 }
                 TileStyle.PILL -> {
-                    // Clear focus: lighter/darker fill plus a 2dp accent border; the row pushes neighbours apart.
+                    // Clear focus: lighter/darker fill and the capsule's own edge turns into a 2dp accent ring. Fill and ring are one
+                    // drawable with one shape, so the ring is exactly the pill's outline and no resting edge can show around it.
                     cardBackground.setColor(if (focused) pillFocusFill else cardColor)
-                    card.foreground = if (focused) borderInset else null
+                    if (focused) cardBackground.setStroke(context.dp(borderDp), Palette.accent) else cardBackground.setStroke(1, Glass.hairline)
                     onDockFocus?.invoke(this, focused)
                 }
                 TileStyle.BORDER -> {
                     val s = if (focused) FOCUS_SCALE else 1f
-                    card.foreground = if (focused) borderInset else null
+                    card.foreground = if (focused) border else null
                     animate().scaleX(s).scaleY(s).translationZ(if (focused) 8f else 0f).setDuration(FOCUS_MS).start()
                 }
             }
@@ -445,12 +447,15 @@ class MenuButton(context: Context) : FocusItem(context) {
         val h = height.toFloat()
         paint.style = Paint.Style.FILL
         paint.color = if (Palette.day) 0x1A000000 else 0x24FFFFFF // dark ~10% by day, white ~14% at night
-        if (spec.icons) shape?.let { canvas.drawPath(it, paint) } else canvas.drawCircle(w / 2f, h / 2f, w / 2f, paint)
+        // Focused, the fill stops at the ring's centre line so no translucent fill fringe shows outside the ring.
+        val ringInset = context.dp(1).toFloat()
+        if (spec.icons) (if (isFocused) ring else shape)?.let { canvas.drawPath(it, paint) }
+        else canvas.drawCircle(w / 2f, h / 2f, w / 2f - if (isFocused) ringInset else 0f, paint)
         if (isFocused) {
             paint.style = Paint.Style.STROKE
-            paint.strokeWidth = context.dp(2).toFloat()
+            paint.strokeWidth = 2 * ringInset
             paint.color = Palette.accent
-            if (spec.icons) ring?.let { canvas.drawPath(it, paint) } else canvas.drawCircle(w / 2f, h / 2f, w / 2f - context.dp(1), paint)
+            if (spec.icons) ring?.let { canvas.drawPath(it, paint) } else canvas.drawCircle(w / 2f, h / 2f, w / 2f - ringInset, paint)
         }
         paint.color = Palette.text
         paint.style = Paint.Style.STROKE

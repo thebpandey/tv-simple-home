@@ -144,9 +144,13 @@ object StillPools {
 object UiTheme {
     const val LIGHT_LUMA = 110
 
-    /** [imageLuma] is null while a procedural scene is showing. An explicit Always day / Always night choice always wins. */
-    fun isDay(mode: DayNightMode, sunSaysDay: Boolean, imageLuma: Int?): Boolean = when {
+    /**
+     * [imageLuma] and [needs] are null while a procedural scene is showing. An explicit Always day / Always night choice always wins;
+     * otherwise a measured image takes the mode that needs the lighter veil, with the brightness rule as the tie-break.
+     */
+    fun isDay(mode: DayNightMode, sunSaysDay: Boolean, imageLuma: Int?, needs: Legibility.Needs? = null): Boolean = when {
         mode != DayNightMode.AUTO -> mode.resolve(sunSaysDay)
+        needs != null -> Legibility.prefersDay(needs, fallbackDay = imageLuma?.let { it >= LIGHT_LUMA } ?: sunSaysDay)
         imageLuma != null -> imageLuma >= LIGHT_LUMA
         else -> sunSaysDay
     }

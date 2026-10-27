@@ -125,6 +125,7 @@ class MainActivity : Activity() {
     private var dayNightMode = DayNightMode.AUTO
     private var uiDay = false
     private var imageLuma: Int? = null // brightness of the photo or painting being shown, null for a procedural scene
+    private var imageNeeds: Legibility.Needs? = null // its measured legibility (see Legibility), null for a procedural scene
     private val dayNightTick = Runnable { updateDayNight() }
     private val quoteTick = Runnable { updateQuote() }
     private val clockReceiver = object : BroadcastReceiver() {
@@ -340,7 +341,7 @@ class MainActivity : Activity() {
             visibility = View.INVISIBLE
             themed.add { setTextColor(Palette.text); background = Glass.drawable(this@MainActivity, dp(12).toFloat()) }
         }
-        menuButton.onTooltip = { show -> showMenuTooltip(show) }
+        menuButton.onTooltip = { show -> showMenuTooltip(show && !menuExpanded) } // the open menu's chevron needs no "Menu" label
         menuButton.onDockFocus = { focused -> onMenuFocus(focused) }
         themed.add {
             shelf.background = Glass.drawable(this, dpf(spec.shelfCornerDp).toFloat())
@@ -410,7 +411,7 @@ class MainActivity : Activity() {
             themed.add { setTextColor(Palette.text); setShadowLayer(dp(2).toFloat(), 0f, dp(1).toFloat(), Palette.shadow) }
         }
         wallpaper.onWallpaperChanged = { credit -> updateCredit(credit) }
-        wallpaper.onLumaChanged = { luma -> onImageLuma(luma) }
+        wallpaper.onToneChanged = { luma, measured -> onImageTone(luma, measured) }
         setContentView(FrameLayout(this).apply {
             setBackgroundColor(COLOR_BG)
             addView(wallpaper, FrameLayout.LayoutParams(-1, -1))
@@ -525,7 +526,7 @@ class MainActivity : Activity() {
         val now = ZonedDateTime.now()
         val sunDay = SunTimes.isDay(now, place.lat, place.lon)
         wallpaper.setDay(dayNightMode.resolve(sunDay))
-        applyUiDay(UiTheme.isDay(dayNightMode, sunDay, imageLuma))
+        applyUiDay(UiTheme.isDay(dayNightMode, sunDay, imageLuma, imageNeeds))
         handler.removeCallbacks(dayNightTick)
         if (dayNightMode == DayNightMode.AUTO) {
             val next = SunTimes.nextTransition(now, place.lat, place.lon)
@@ -545,11 +546,12 @@ class MainActivity : Activity() {
         wallpaper.setUiDay(uiDay)
     }
 
-    private fun onImageLuma(luma: Int?) {
-        if (imageLuma == luma) return
+    private fun onImageTone(luma: Int?, measured: Legibility.Needs?) {
+        if (imageLuma == luma && imageNeeds == measured) return
         imageLuma = luma
+        imageNeeds = measured
         val place = loadPlace()
-        applyUiDay(UiTheme.isDay(dayNightMode, SunTimes.isDay(ZonedDateTime.now(), place.lat, place.lon), luma))
+        applyUiDay(UiTheme.isDay(dayNightMode, SunTimes.isDay(ZonedDateTime.now(), place.lat, place.lon), luma, measured))
     }
 
     // ---------- Festival ----------
@@ -588,8 +590,13 @@ class MainActivity : Activity() {
             festivalBanner.visibility = View.GONE
         } else {
             val banner = Festivals.bannerFor(active, today)
-            festivalName.text = banner.title
-            festivalName.setTextColor(Palette.festival(active.festival.accent))
+            // The name is in the solid text colour (a deep accent colour had too little contrast over busy paintings); the festival's
+            // accent survives as a small dot before it, like the air-quality dot.
+            festivalName.text = android.text.SpannableString("\u25CF ${banner.title}").apply {
+                setSpan(android.text.style.ForegroundColorSpan(Palette.festival(active.festival.accent)), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                setSpan(android.text.style.RelativeSizeSpan(0.7f), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            festivalName.setTextColor(Palette.text)
             festivalDate.text = banner.dateLine
             val note = banner.indiaLine ?: banner.observedLine // the India date differs, or a weekend holiday is observed on another day
             festivalIndia.text = note.orEmpty()
@@ -905,7 +912,13 @@ class MainActivity : Activity() {
         }
         dockDivider.animate().translationX(menuPush).setDuration(DOCK_MS).setInterpolator(Motion.EASE).start()
         // Pivot is the bottom centre; shifting by half the growth keeps the button's left edge at its slot edge, so it never leaves the shelf.
-        if (menuFocused) menuButton.animateTo(spec.magFocus, spec.liftDp, menuPush / 2f, DOCK_MS) else menuButton.animateTo(1f, 0f, 0f, DOCK_MS)
+        // With the menu open the button is the back chevron in a row of pills: it grows like a pill (no dock magnification, no lift),
+        // which keeps it inside the shelf's padding; a 1.45x dock growth there overflowed the shelf's left edge and was clipped.
+        when {
+            menuFocused && menuExpanded -> menuButton.animateTo(spec.pillMag, 0f, 0f, DOCK_MS)
+            menuFocused -> menuButton.animateTo(spec.magFocus, spec.liftDp, menuPush / 2f, DOCK_MS)
+            else -> menuButton.animateTo(1f, 0f, 0f, DOCK_MS)
+        }
         if (menuFocused && dockScrolls) favScroller.smoothScrollTo(0, 0)
         if (center >= 0 && !menuFocused) ensureDockVisible(favRow.getChildAt(center), scales[center], shifts[center])
     }

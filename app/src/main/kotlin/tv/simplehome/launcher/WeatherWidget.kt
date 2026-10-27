@@ -21,7 +21,9 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
         setStroke(context.dp(4), COLOR_ACCENT)
     }
 
-    private val borderInset = android.graphics.drawable.InsetDrawable(border, context.dp(2)) // keep the whole stroke inside the bounds
+    // Focus: a glass card BEHIND the text and a ring over it. (The ring drawable used to carry the glass fill as a foreground, which
+    // painted a 60% white layer over the text and turned it grey.)
+    private val focusCard = GradientDrawable().apply { cornerRadius = context.dp(12).toFloat() }
 
     init {
         orientation = HORIZONTAL
@@ -45,7 +47,8 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
         addView(col, LayoutParams(-2, -2))
         setOnFocusChangeListener { _, focused ->
             // Same focus style as the tiles: accent border + 1.06x, and nothing at all when unfocused.
-            foreground = if (focused) borderInset else null
+            foreground = if (focused) border else null
+            background = if (focused) focusCard else null
             val s = if (focused) 1.06f else 1f
             animate().scaleX(s).scaleY(s).setDuration(120).start()
         }
@@ -56,8 +59,9 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
         temp.setTextColor(Palette.text)
         condition.setTextColor(Palette.text70)
         place.setTextColor(Palette.text70)
-        border.setStroke(context.dp(2), Palette.accent) // system-blue ring; the glass fill appears with it only while focused
-        border.setColor(Glass.fill)
+        border.setStroke(context.dp(2), Palette.accent) // system-blue ring; GradientDrawable keeps the stroke inside the bounds
+        border.cornerRadius = context.dp(12).toFloat() - context.dp(1) // concentric with the card's 12dp outline
+        focusCard.setColor(Glass.fill)
         // No card behind the weather text: a soft shadow keeps it readable on the wallpaper.
         for (t in listOf(temp, condition, place, air)) t.headerShadow()
     }

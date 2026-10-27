@@ -97,4 +97,15 @@ class DockClipTest {
             assertTrue("${spec.style} needs $needed above the button, has $headroom", needed <= headroom)
         }
     }
+
+    @Test
+    fun `with the menu open the focused chevron grows like a pill and stays inside the shelf, clear of the divider`() {
+        // The open menu's shelf starts at the chevron's left inset; a dock-sized 1.45x growth there spilled past the shelf and was clipped.
+        for (spec in specs) {
+            val side = spec.buttonDp * (spec.pillMag - 1f) / 2f
+            assertTrue("${spec.style} left: grows $side + ring into a ${spec.menuInsetDp} inset", side + ring <= spec.menuInsetDp)
+            val gapToDivider = spec.dividerXDp - (spec.menuInsetDp + spec.buttonDp)
+            assertTrue("${spec.style} right: grows $side + ring into a $gapToDivider gap", side + ring < gapToDivider)
+        }
+    }
 }

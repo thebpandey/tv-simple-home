@@ -56,17 +56,17 @@ class ScrimTest {
     }
 
     @Test
-    fun `the top veil holds through the header text, eases out smoothly and is gone by 34 percent of the height`() {
+    fun `the top veil holds through the header text, eases out smoothly and is gone by 40 percent of the height`() {
         val plateau = LayoutBudget.SCRIM_HEADER_END_DP.toFloat()
-        assertEquals(ScrimSpec.NIGHT_ALPHA, ScrimSpec.alphaAt(plateau, heightDp, false), 0.001f)
-        assertEquals(0f, ScrimSpec.alphaAt(0.34f * heightDp, heightDp, false), 0.001f)
+        assertEquals(ScrimSpec.NIGHT_ALPHA, ScrimSpec.topAt(plateau, heightDp, false), 0.001f)
+        assertEquals(0f, ScrimSpec.topAt(ScrimSpec.TOP_FADE_END_FRACTION * heightDp, heightDp, false), 0.001f)
         var prev = ScrimSpec.NIGHT_ALPHA
         var y = plateau
-        while (y <= 0.34f * heightDp) { val a = ScrimSpec.alphaAt(y, heightDp, false); assertTrue("monotonic at $y", a <= prev + 1e-4f); prev = a; y += 2f }
+        while (y <= ScrimSpec.TOP_FADE_END_FRACTION * heightDp) { val a = ScrimSpec.topAt(y, heightDp, false); assertTrue("monotonic at $y", a <= prev + 1e-4f); prev = a; y += 2f }
         // no visible edge: the slope never exceeds a smoothstep's 1.5x the average
-        val avg = ScrimSpec.NIGHT_ALPHA / (0.34f * heightDp - plateau)
+        val avg = ScrimSpec.NIGHT_ALPHA / (ScrimSpec.TOP_FADE_END_FRACTION * heightDp - plateau)
         var yy = plateau
-        while (yy < 0.34f * heightDp - 2f) { assertTrue(ScrimSpec.alphaAt(yy, heightDp, false) - ScrimSpec.alphaAt(yy + 2f, heightDp, false) <= 2f * avg * 1.8f); yy += 2f }
+        while (yy < ScrimSpec.TOP_FADE_END_FRACTION * heightDp - 2f) { assertTrue(ScrimSpec.topAt(yy, heightDp, false) - ScrimSpec.topAt(yy + 2f, heightDp, false) <= 2f * avg * 1.8f); yy += 2f }
     }
 
     @Test
@@ -77,13 +77,51 @@ class ScrimTest {
         assertTrue(ScrimSpec.topAlpha(60, false) < ScrimSpec.topAlpha(140, false))
         assertEquals(ScrimSpec.NIGHT_ALPHA, ScrimSpec.topAlpha(null, false), 0f)
         assertEquals(ScrimSpec.DAY_ALPHA, ScrimSpec.topAlpha(null, true), 0f)
-        assertEquals(0.40f, ScrimSpec.alphaAt(60f, heightDp, false, top = 0.40f), 0.001f)
+        assertEquals(0.40f, ScrimSpec.topAt(60f, heightDp, false, top = 0.40f), 0.001f)
     }
 
     @Test
-    fun `the quote band sits behind the centred quote`() {
-        assertTrue(ScrimSpec.QUOTE_PLATEAU_START_DP <= LayoutBudget.QUOTE_TOP_DP + 12f)
-        assertTrue(ScrimSpec.QUOTE_PLATEAU_END_DP >= LayoutBudget.QUOTE_BOTTOM_DP - 12f)
+    fun `the quote veil is at least 90 percent strength over the whole quote column, corners included`() {
+        val a = 0.4f
+        var y = LayoutBudget.QUOTE_TOP_DP
+        while (y <= LayoutBudget.QUOTE_BOTTOM_DP) {
+            var x = Legibility.QUOTE_X_DP.start
+            while (x <= Legibility.QUOTE_X_DP.endInclusive) {
+                assertTrue("x=$x y=$y", ScrimSpec.quoteAt(x, y, a) >= 0.9f * a)
+                x += 8f
+            }
+            y += 4f
+        }
+    }
+
+    @Test
+    fun `the quote veil has no visible edge on any side - it eases out instead of stepping like the old band`() {
+        // The old band rose from 0 to full over 18dp, which read as a hard-edged rectangle. Along any ray out of the centre the veil
+        // may change by at most 2.5 percent of its strength per dp (about a third of that old ramp's slope).
+        val a = 1f
+        for (deg in 0 until 360 step 15) {
+            val r = Math.toRadians(deg.toDouble())
+            var prev = ScrimSpec.quoteAt(480f, ScrimSpec.QUOTE_CY_DP, a)
+            var t = 1f
+            while (t < 700f) {
+                val v = ScrimSpec.quoteAt(480f + t * kotlin.math.cos(r).toFloat(), ScrimSpec.QUOTE_CY_DP + t * kotlin.math.sin(r).toFloat(), a)
+                assertTrue("deg=$deg t=$t step=${prev - v}", kotlin.math.abs(prev - v) <= 0.025f)
+                assertTrue("monotonic deg=$deg t=$t", v <= prev + 1e-4f)
+                prev = v
+                t += 1f
+            }
+        }
+    }
+
+    @Test
+    fun `the drawn mask is exactly the tested scrim function`() {
+        val w = 240
+        val h = 135
+        val m = ScrimSpec.mask(w, h, day = true, top = 0.3f, quote = 0.45f)
+        for ((x, y) in listOf(120 to 10, 120 to 60, 30 to 60, 200 to 100, 120 to 130)) {
+            val expected = ScrimSpec.alphaAt((y + 0.5f) * 540f / h, 540f, true, top = 0.3f, quote = 0.45f, xDp = (x + 0.5f) * 960f / w)
+            assertEquals("x=$x y=$y", expected, (m[y * w + x].toInt() and 255) / 255f, 1f / 255f + 1e-4f)
+        }
     }
 
     @Test
@@ -91,9 +129,9 @@ class ScrimTest {
         // The dock view also holds transparent headroom for the magnified icons; the tiles and shelf start below it.
         val spec = LayoutBudget.ICONS_SPEC
         val shelfTop = 540 - 27 - spec.bottomGapDp - spec.cardHeightDp(spec.maxBaseDp) - 2 * spec.shelfPadDp
-        for (y in shelfTop.toInt()..513 step 10) {
-            assertEquals(0f, ScrimSpec.alphaAt(y.toFloat(), heightDp, false), 0f)
-            assertEquals(0f, ScrimSpec.alphaAt(y.toFloat(), heightDp, true), 0f)
+        for (y in shelfTop.toInt()..513 step 10) for (x in 0..960 step 40) {
+            assertEquals(0f, ScrimSpec.alphaAt(y.toFloat(), heightDp, false, quote = 0.6f, xDp = x.toFloat()), 0f)
+            assertEquals(0f, ScrimSpec.alphaAt(y.toFloat(), heightDp, true, quote = 0.6f, xDp = x.toFloat()), 0f)
         }
     }
 
