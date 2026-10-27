@@ -374,7 +374,7 @@ class MainActivity : Activity() {
             clipChildren = false
             clipToPadding = false
             addView(buildTopBar(), LinearLayout.LayoutParams(-1, dp(LayoutBudget.TOP_BAR_DP)))
-            addView(buildFestivalBanner(), LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8) })
+            addView(buildFestivalBanner(), LinearLayout.LayoutParams(-1, -2))
             addView(center, LinearLayout.LayoutParams(-1, 0, 1f))
             addView(dock, LinearLayout.LayoutParams(-1, dpf(LayoutBudget.DOCK_DP)))
         }
@@ -426,38 +426,29 @@ class MainActivity : Activity() {
         applyTheme()
     }
 
-    /** A compact glass card (translucent fill, 1px hairline, soft shadow) that hugs its content; re-skinned when day/night flips. */
-    private fun glassCard(view: View, radiusDp: Int = LayoutBudget.CARD_RADIUS_DP) {
-        view.elevation = dp(6).toFloat()
-        themed.add { view.background = Glass.drawable(this, dp(radiusDp).toFloat()) }
-    }
-
-    /** Top bar: the clock group card on the left and the weather card on the right, tops aligned; the banner has its own card below. */
+    /** Top bar, card-less: the clock group on the left and the weather group on the right sit directly on the wallpaper. */
     private fun buildTopBar(): View {
-        val bar = FrameLayout(this).apply { clipChildren = false; clipToPadding = false }
-        val clockCard = LinearLayout(this).apply {
+        val bar = LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL
             clipChildren = false
-            setPadding(dp(LayoutBudget.CARD_PAD_H_DP), dp(LayoutBudget.CARD_PAD_V_DP), dp(LayoutBudget.CARD_PAD_H_DP), dp(LayoutBudget.CARD_PAD_V_DP))
         }
-        glassCard(clockCard)
-        // TextClock follows the system 12/24h setting and ticks on its own. Inter Light 56sp, tabular numerals.
-        clockCard.addView(TextClock(this).apply {
+        // TextClock follows the system 12/24h setting and ticks on its own. Inter Light 64sp, tabular numerals.
+        bar.addView(TextClock(this).apply {
             format12Hour = "h:mm"
             format24Hour = "H:mm"
-            style(300, 56f, -0.02f, tabular = true)
+            style(300, 64f, -0.02f, tabular = true)
             includeFontPadding = false
-            themed.add { setTextColor(Palette.text) }
+            themed.add { setTextColor(Palette.text); headerShadow() }
         })
         val info = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(4), 0, 0)
+            setPadding(dp(22), dp(6), 0, 0)
         }
         info.addView(TextClock(this).apply {
             format12Hour = "EEEE, MMMM d"
             format24Hour = "EEEE, MMMM d"
             style(400, 17f)
-            themed.add { setTextColor(Palette.text70) }
+            themed.add { setTextColor(Palette.text70); headerShadow() }
         })
         val delhi = LinearLayout(this).apply { gravity = Gravity.BOTTOM }
         delhiRow = delhi
@@ -465,23 +456,23 @@ class MainActivity : Activity() {
             text = "New Delhi"
             style(400, 17f)
             setPadding(0, 0, dp(8), 0)
-            themed.add { setTextColor(Palette.text70) }
+            themed.add { setTextColor(Palette.text70); headerShadow() }
         })
         delhi.addView(TextClock(this).apply {
             timeZone = "Asia/Kolkata"
             style(400, 17f, tabular = true)
-            themed.add { setTextColor(Palette.text70) }
+            themed.add { setTextColor(Palette.text70); headerShadow() }
         })
         info.addView(delhi)
-        clockCard.addView(info)
-        bar.addView(clockCard, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.START))
+        bar.addView(info)
+        bar.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
         weatherWidget = WeatherWidget(this).apply {
             setOnClickListener { openWeatherPanel() }
             isFocusedByDefault = false // reachable only by an explicit UP from the dock
         }
         themed.add { weatherWidget.applyTheme() }
         // Right margin leaves room for the focus scale inside the 48dp safe area.
-        bar.addView(weatherWidget, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.END).apply { rightMargin = dp(6) })
+        bar.addView(weatherWidget, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = dp(6) })
         return bar
     }
 
@@ -563,29 +554,29 @@ class MainActivity : Activity() {
 
     // ---------- Festival ----------
 
+    /** Festival / holiday banner under the clock group, left-aligned with it: 16sp title in the accent colour, 13sp date, 12sp note. */
     private fun buildFestivalBanner(): View {
         festivalName = TextView(this).apply {
-            style(600, 20f)
-            themed.add { setShadowLayer(dp(3).toFloat(), 0f, dp(1).toFloat(), Palette.shadow) }
+            style(600, 16f)
+            themed.add { headerShadow() }
         }
         festivalDate = TextView(this).apply {
-            style(400, 14f)
-            themed.add { setTextColor(Palette.text70); setShadowLayer(dp(3).toFloat(), 0f, dp(1).toFloat(), Palette.shadow) }
+            style(400, 13f)
+            themed.add { setTextColor(Palette.text70); headerShadow() }
         }
         festivalIndia = TextView(this).apply {
-            style(400, 13f)
+            style(400, 12f)
             visibility = View.GONE
-            themed.add { setTextColor(Palette.text60); setShadowLayer(dp(3).toFloat(), 0f, dp(1).toFloat(), Palette.shadow) }
+            themed.add { setTextColor(Palette.text60); headerShadow() }
         }
         festivalBanner = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             visibility = View.GONE
-            setPadding(dp(16), dp(12), dp(16), dp(12))
+            setPadding(0, 0, 0, dp(4))
             addView(festivalName, LinearLayout.LayoutParams(-2, -2))
             addView(festivalDate, LinearLayout.LayoutParams(-2, -2))
             addView(festivalIndia, LinearLayout.LayoutParams(-2, -2))
         }
-        glassCard(festivalBanner)
         return festivalBanner
     }
 
@@ -620,9 +611,8 @@ class MainActivity : Activity() {
             style(300, 23f)
             setLineSpacing(0f, 1.3f)
             gravity = Gravity.CENTER
-            maxLines = 3
-            ellipsize = android.text.TextUtils.TruncateAt.END
-            maxWidth = (resources.displayMetrics.widthPixels * 0.64f).toInt()
+            maxLines = QuoteFit.LINES_AT_SIZE // refitted per quote in applyQuote; never ellipsized
+            maxWidth = quoteWidthPx()
         }
         val author = TextView(this).apply {
             style(500, 15f, 0.02f)
@@ -663,11 +653,30 @@ class MainActivity : Activity() {
         handler.postDelayed(quoteTick, untilBoundary.coerceIn(1_000L, Quotes.SLOT_MINUTES * 60_000L + 1_000L))
     }
 
-    private fun setQuoteText(text: TextView, author: TextView, quote: Quote, animate: Boolean) {
-        val apply = {
-            text.text = "\u201C${quote.text}\u201D"
-            author.text = "\u2014 ${quote.author}"
+    private fun quoteWidthPx(): Int = (resources.displayMetrics.widthPixels * QuoteFit.MAX_WIDTH_FRACTION).toInt()
+
+    /** Real measurement: StaticLayout with the quote's own typeface, line spacing and the column width. */
+    private val lineCounter = LineCounter { text, sp, _ ->
+        val paint = android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = Fonts.typeface(this@MainActivity, 300)
+            textSize = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, sp, resources.displayMetrics)
         }
+        android.text.StaticLayout.Builder.obtain(text, 0, text.length, paint, quoteWidthPx()).setLineSpacing(0f, 1.3f).setIncludePad(true).build().lineCount
+    }
+
+    /** Sets the quote and author and sizes the quote to fit (23 -> 21 -> 19.5sp, then 4 lines); the author is never clipped or ellipsized. */
+    private fun applyQuote(text: TextView, author: TextView, quote: Quote) {
+        val shown = "\u201C${quote.text}\u201D"
+        val fit = QuoteFit.fit(shown, quoteWidthPx() / resources.displayMetrics.density, lineCounter)
+        text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, fit.sp)
+        text.maxLines = fit.maxLines
+        text.text = shown
+        author.text = "\u2014 ${quote.author}"
+    }
+
+    private fun setQuoteText(text: TextView, author: TextView, quote: Quote, animate: Boolean) {
+        // The swap happens while both lines are fully faded out, so the centre re-centring to the new block height is never seen.
+        val apply = { applyQuote(text, author, quote) }
         if (!animate) { apply(); return }
         // Gentle, together: fade out 1.2s (ease-in-out); swap the text while invisible (the centre keeps the quote
         // vertically centred, so nothing visibly jumps); fade in 1.2s with a 6dp upward drift.

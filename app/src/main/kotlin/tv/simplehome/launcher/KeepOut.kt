@@ -13,7 +13,7 @@ data class DpRect(val left: Float, val top: Float, val right: Float, val bottom:
 }
 
 /**
- * Regions that carry text or controls. No scene's sun, moon or other focal motif may sit on them: the header cards (clock
+ * Regions that carry text or controls. No scene's sun, moon or other focal motif may sit on them: the header text groups (clock
  * group with its banner, weather group), the quote band and the dock band. Extents of text are estimates (Inter at the
  * given sizes), kept slightly generous.
  */
@@ -22,9 +22,9 @@ object KeepOut {
     const val SCREEN_W = 960f
     private val top = LayoutBudget.SAFE_TOP_BOTTOM_DP.toFloat()
 
-    val CLOCK_GROUP = DpRect(SAFE_SIDE, top, LayoutBudget.CLOCK_CARD_RIGHT_DP, top + LayoutBudget.TOP_BAR_DP)
-    val BANNER = DpRect(SAFE_SIDE, top + LayoutBudget.TOP_BAR_DP, LayoutBudget.BANNER_CARD_RIGHT_DP, top + LayoutBudget.header(true))
-    val WEATHER_GROUP = DpRect(LayoutBudget.WEATHER_CARD_LEFT_DP, top, SCREEN_W - SAFE_SIDE, top + LayoutBudget.WEATHER_CARD_H_DP)
+    val CLOCK_GROUP = DpRect(SAFE_SIDE, top, LayoutBudget.CLOCK_GROUP_RIGHT_DP, top + LayoutBudget.TOP_BAR_DP)
+    val BANNER = DpRect(SAFE_SIDE, top + LayoutBudget.TOP_BAR_DP, LayoutBudget.BANNER_RIGHT_DP, top + LayoutBudget.header(true))
+    val WEATHER_GROUP = DpRect(LayoutBudget.WEATHER_LEFT_DP, top, SCREEN_W - SAFE_SIDE, top + LayoutBudget.TOP_BAR_DP)
 
     /** The quote is at most 64% of the width, centred; it sits lower with a banner and higher without, so the band is the union. */
     val QUOTE_BAND: DpRect get() {
@@ -51,7 +51,7 @@ data class Focal(val x: Float, val y: Float, val r: Float) {
 }
 
 /**
- * Every scene's focal position, all in the clear right-hand column (right of the quote band, below the weather card) so
+ * Every scene's focal position, all in the clear right-hand column (right of the quote band, below the weather group) so
  * that nothing celestial sits behind text. Ridgelines start at about y=97, so the disc stays above them.
  */
 object Focals {

@@ -31,6 +31,7 @@ object Palette {
     val text60 get() = (text and 0x00FFFFFF) or (0x99 shl 24)
     val highlight get() = if (day) 0x14000000 else 0x24FFFFFF
     val shadow get() = if (day) 0xCCFFFFFF.toInt() else 0xCC000000.toInt()
+    val headerShadow get() = if (day) 0x80FFFFFF.toInt() else 0x73000000
     val quickCard get() = if (day) 0xD9FFFFFF.toInt() else COLOR_CARD
     /** Deeper version of a festival accent so it stays readable on the light scrim. */
     fun festival(accent: Int): Int =

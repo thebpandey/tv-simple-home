@@ -12,16 +12,24 @@ object ScrimSpec {
     const val NIGHT_ALPHA = 0.33f
     const val DAY_ALPHA = 0.30f
 
-    // Header band: the clocks, weather and banner (27..151dp) plus 24dp of fade. Quote band: behind the centred quote.
-    // The middle (behind the dock) gets no tint at all.
-    // Derived from the layout so the veils always sit where the text is (header band; quote band; nothing behind the dock).
-    val TOP_PLATEAU_DP = LayoutBudget.SCRIM_HEADER_END_DP.toFloat() // the header texts sit on glass cards, so the veil only backs up the card row
-    val TOP_FADE_END_DP = TOP_PLATEAU_DP + 24f
-    // The quote band may not start before the header band has faded out.
+    // Top band: full strength through the header text (27..150dp), then a smooth ease-out to nothing at 34% of the screen height (184dp).
+    // Quote band: behind the centred quote. The middle (behind the dock) gets no tint at all.
+    val TOP_PLATEAU_DP = LayoutBudget.SCRIM_HEADER_END_DP.toFloat()
+    const val TOP_FADE_END_FRACTION = 0.34f
+    val TOP_FADE_END_DP = 540f * TOP_FADE_END_FRACTION
+    // The quote band may not start before the top band has faded out.
     val QUOTE_RAMP_IN_START_DP = maxOf(LayoutBudget.QUOTE_TOP_DP - 28f, TOP_FADE_END_DP + 2f)
     val QUOTE_PLATEAU_START_DP = maxOf(LayoutBudget.QUOTE_TOP_DP - 10f, QUOTE_RAMP_IN_START_DP + 6f)
     val QUOTE_PLATEAU_END_DP = LayoutBudget.QUOTE_BOTTOM_DP + 10f
     val QUOTE_RAMP_OUT_END_DP = LayoutBudget.QUOTE_BOTTOM_DP + 30f
+
+    // Images (photos, paintings): the top veil scales with how bright the image is, 0.18 for dark ones up to 0.40 for bright ones.
+    const val IMAGE_TOP_MIN = 0.18f
+    const val IMAGE_TOP_MAX = 0.40f
+
+    /** Top veil strength: the scene constant when no image [luma] is known (scenes keep their tuned plateau), else 0.18..0.40 by brightness. */
+    fun topAlpha(luma: Int?, day: Boolean): Float =
+        if (luma == null) plateau(day) else IMAGE_TOP_MIN + (IMAGE_TOP_MAX - IMAGE_TOP_MIN) * ((luma - 60) / 100f).coerceIn(0f, 1f)
 
     const val PHOTO_BOOST = 1.4f
 
@@ -32,21 +40,31 @@ object ScrimSpec {
     const val DAY_TEXT = 0xFF101216.toInt()
 
     private fun plateau(day: Boolean) = if (day) DAY_ALPHA else NIGHT_ALPHA
-    private val STOPS_DP by lazy { floatArrayOf(0f, TOP_PLATEAU_DP, TOP_FADE_END_DP, QUOTE_RAMP_IN_START_DP, QUOTE_PLATEAU_START_DP, QUOTE_PLATEAU_END_DP, QUOTE_RAMP_OUT_END_DP) }
+
+    // The ease-out is four extra stops (1, 0.84, 0.5, 0.16, 0 of the strength, a smoothstep) so it has no visible edge.
+    private val EASE = floatArrayOf(1f, 0.844f, 0.5f, 0.156f, 0f)
+    private val STOPS_DP by lazy {
+        val fade = TOP_FADE_END_DP - TOP_PLATEAU_DP
+        floatArrayOf(0f, TOP_PLATEAU_DP, TOP_PLATEAU_DP + fade * 0.25f, TOP_PLATEAU_DP + fade * 0.5f, TOP_PLATEAU_DP + fade * 0.75f, TOP_FADE_END_DP,
+            QUOTE_RAMP_IN_START_DP, QUOTE_PLATEAU_START_DP, QUOTE_PLATEAU_END_DP, QUOTE_RAMP_OUT_END_DP)
+    }
 
     /** Fractions (of screen height) for the gradient stops; the last stop is the bottom edge. */
     fun positions(heightDp: Float): FloatArray = FloatArray(STOPS_DP.size + 1) { if (it < STOPS_DP.size) STOPS_DP[it] / heightDp else 1f }
 
-    /** [boost] > 1 strengthens the veil, used over arbitrary photos whose brightness is unknown. */
-    fun alphas(day: Boolean, boost: Float = 1f): FloatArray {
-        val p = plateau(day) * boost
-        return floatArrayOf(p, p, 0f, 0f, p, p, 0f, 0f)
+    /**
+     * [boost] > 1 strengthens the quote veil (photos); [top] overrides the top veil's strength (images), else it is the scene plateau x [boost].
+     */
+    fun alphas(day: Boolean, boost: Float = 1f, top: Float? = null): FloatArray {
+        val q = plateau(day) * boost
+        val t = top ?: q
+        return floatArrayOf(t, t, t * EASE[1], t * EASE[2], t * EASE[3], 0f, 0f, q, q, 0f, 0f)
     }
 
     /** Scrim opacity at [yDp], by linear interpolation between the stops (what the GPU gradient does). */
-    fun alphaAt(yDp: Float, heightDp: Float, day: Boolean, boost: Float = 1f): Float {
+    fun alphaAt(yDp: Float, heightDp: Float, day: Boolean, boost: Float = 1f, top: Float? = null): Float {
         val pos = positions(heightDp)
-        val a = alphas(day, boost)
+        val a = alphas(day, boost, top)
         val f = (yDp / heightDp).coerceIn(0f, 1f)
         for (i in 0 until pos.size - 1) {
             if (f <= pos[i + 1]) {
@@ -58,9 +76,9 @@ object ScrimSpec {
     }
 
     /** Scrim ARGB colors for [alphas]: black at night, white by day. */
-    fun colors(day: Boolean, boost: Float = 1f): IntArray {
+    fun colors(day: Boolean, boost: Float = 1f, top: Float? = null): IntArray {
         val rgb = if (day) 0xFFFFFF else 0x000000
-        val a = alphas(day, boost)
+        val a = alphas(day, boost, top)
         return IntArray(a.size) { ((a[it] * 255f + 0.5f).toInt() shl 24) or rgb }
     }
 }

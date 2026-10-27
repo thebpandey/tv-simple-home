@@ -13,20 +13,16 @@ object LayoutBudget {
     const val SAFE_HEIGHT_DP = SCREEN_DP - 2 * SAFE_TOP_BOTTOM_DP // 486
 
     // Header: clock 40sp, date 18sp, New Delhi 16sp, weather widget; plus a festival banner of up to 3 lines.
-    // Glass cards: the clock group (56sp clock + date lines, 16dp/20dp padding = 100dp) and the weather group (88dp) sit on cards;
-    // the festival banner has its own small card (up to 80dp) under the clock card with an 8dp gap.
-    const val TOP_BAR_DP = 100
-    const val BANNER_MAX_DP = 90
-    const val CARD_RADIUS_DP = 20
-    const val CARD_PAD_V_DP = 16
-    const val CARD_PAD_H_DP = 20
-    const val CLOCK_CARD_RIGHT_DP = 460f // estimates of the cards' right/left edges at 960dp (text widths of Inter at these sizes)
-    const val BANNER_CARD_RIGHT_DP = 440f
-    const val WEATHER_CARD_LEFT_DP = 533f
-    const val WEATHER_CARD_H_DP = 88
+    // Card-less header: the clock group (64sp clock, date, New Delhi) on the left and the weather group on the right sit directly on the
+    // wallpaper, kept readable by a soft text shadow and the top scrim. The festival banner (16/13/12sp) sits under the clock group.
+    const val TOP_BAR_DP = 88 // clock 64sp light, date 17sp, weather 44sp
+    const val BANNER_MAX_DP = 60
+    const val CLOCK_GROUP_RIGHT_DP = 450f // estimates of the text groups' extents at 960dp (Inter at these sizes), kept slightly generous
+    const val BANNER_RIGHT_DP = 380f
+    const val WEATHER_LEFT_DP = 540f
 
-    // Quote block, worst case: 3 lines of 23sp Inter Light at 1.3 line height (3 x 36) + 15sp author (18) + paddings (12) = 138; the centre never shrinks below it.
-    const val QUOTE_MIN_DP = 140
+    // Quote block, worst case: 4 lines of 19.5sp Inter Light at 1.3 line height + the 15sp author + paddings (see QuoteFit.maxBlockDp); the centre never shrinks below it.
+    const val QUOTE_MIN_DP = 164
 
     // ---- Dock. Every dock dimension lives in DockSpec (one per style) and is the design value times that style's scale. ----
     const val DOCK_SCALE = 0.88f // icon dock: 64dp x 0.88 = 56.3dp resting icons; the single knob for the whole icon dock
@@ -71,11 +67,11 @@ object LayoutBudget {
     /** How far a focused item of the given size grows past its own bounds, per side, at [scale]. */
     fun focusOverflowDp(sizeDp: Float, scale: Float): Float = (scale - 1f) / 2f * sizeDp
 
-    // The weather widget text column: condition+high/low 16sp (19) + place 14sp (17) + air quality 12sp (15), plus the card padding top and bottom.
-    const val WEATHER_WIDGET_DP = 19 + 17 + 15 + 2 * CARD_PAD_V_DP
+    // The weather widget text column: condition+high/low 16sp (19) + place 14sp (17) + air quality 12sp (15), plus 10dp padding top and bottom.
+    const val WEATHER_WIDGET_DP = 19 + 17 + 15 + 20
 
     // Fixed screen positions (dp from the top) of the content the scrim has to protect.
-    val SCRIM_HEADER_END_DP = SAFE_TOP_BOTTOM_DP + TOP_BAR_DP // the clock and weather cards
+    val SCRIM_HEADER_END_DP = 150 // the top scrim holds its full strength down to here (clock, date, weather and the banner title), then fades out
     val HEADER_END_DP = SAFE_TOP_BOTTOM_DP + header(true) // 151
     val QUOTE_TOP_DP = HEADER_END_DP + (centerDp(true) - QUOTE_MIN_DP) / 2f // top of the quote box, centred in the free centre
     val QUOTE_BOTTOM_DP = QUOTE_TOP_DP + QUOTE_MIN_DP

@@ -28,6 +28,9 @@ fun TextView.style(weight: Int, sp: Float, tracking: Float = 0f, tabular: Boolea
     if (tabular) fontFeatureSettings = "tnum"
 }
 
+/** Soft shadow for the header text, which sits directly on the wallpaper: black 45% at night, white 50% on the light UI; 8dp blur, 1dp down. */
+fun TextView.headerShadow() = setShadowLayer(context.dp(8).toFloat(), 0f, context.dp(1).toFloat(), Palette.headerShadow)
+
 /** "Glass" material: translucent fill with a 1px hairline border; the blur behind it is not implemented (see the report). */
 object Glass {
     val fill get() = if (Palette.day) 0x99F2F2F7.toInt() else 0x8C1C1C1E.toInt()

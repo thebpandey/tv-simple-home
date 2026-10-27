@@ -16,7 +16,7 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
     private val place = text(14f, COLOR_MUTED)
     private val air = text(13f, COLOR_MUTED).apply { visibility = GONE }
     private val border = GradientDrawable().apply {
-        cornerRadius = context.dp(LayoutBudget.CARD_RADIUS_DP).toFloat()
+        cornerRadius = context.dp(12).toFloat()
         setColor(Color.TRANSPARENT)
         setStroke(context.dp(4), COLOR_ACCENT)
     }
@@ -31,8 +31,7 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
         defaultFocusHighlightEnabled = false // the platform highlight looked like a permanent outline
         visibility = GONE
         // 4dp of stroke sits inside the bounds, so the content gets 8dp more on every side to stay fully inside the focus ring.
-        setPadding(context.dp(LayoutBudget.CARD_PAD_H_DP), context.dp(LayoutBudget.CARD_PAD_V_DP), context.dp(LayoutBudget.CARD_PAD_H_DP), context.dp(LayoutBudget.CARD_PAD_V_DP))
-        elevation = context.dp(6).toFloat()
+        setPadding(context.dp(16), context.dp(10), context.dp(18), context.dp(10))
         addView(icon, LayoutParams(context.dp(36), context.dp(36)))
         temp.setPadding(context.dp(6), 0, 0, 0)
         addView(temp, LayoutParams(-2, -2))
@@ -57,9 +56,10 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
         temp.setTextColor(Palette.text)
         condition.setTextColor(Palette.text70)
         place.setTextColor(Palette.text70)
-        border.setStroke(context.dp(2), Palette.accent) // system-blue ring over the always-on glass card
-        border.setColor(Color.TRANSPARENT)
-        background = Glass.drawable(context, context.dp(LayoutBudget.CARD_RADIUS_DP).toFloat())
+        border.setStroke(context.dp(2), Palette.accent) // system-blue ring; the glass fill appears with it only while focused
+        border.setColor(Glass.fill)
+        // No card behind the weather text: a soft shadow keeps it readable on the wallpaper.
+        for (t in listOf(temp, condition, place, air)) t.headerShadow()
     }
 
     fun show(data: WeatherData, placeName: String) {

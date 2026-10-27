@@ -56,9 +56,28 @@ class ScrimTest {
     }
 
     @Test
-    fun `the header band covers the glass card row plus 24dp and then fades out`() {
-        assertEquals(ScrimSpec.NIGHT_ALPHA, ScrimSpec.alphaAt(LayoutBudget.SCRIM_HEADER_END_DP.toFloat(), heightDp, false), 0.001f)
-        assertEquals(0f, ScrimSpec.alphaAt(LayoutBudget.SCRIM_HEADER_END_DP + 24f, heightDp, false), 0.001f)
+    fun `the top veil holds through the header text, eases out smoothly and is gone by 34 percent of the height`() {
+        val plateau = LayoutBudget.SCRIM_HEADER_END_DP.toFloat()
+        assertEquals(ScrimSpec.NIGHT_ALPHA, ScrimSpec.alphaAt(plateau, heightDp, false), 0.001f)
+        assertEquals(0f, ScrimSpec.alphaAt(0.34f * heightDp, heightDp, false), 0.001f)
+        var prev = ScrimSpec.NIGHT_ALPHA
+        var y = plateau
+        while (y <= 0.34f * heightDp) { val a = ScrimSpec.alphaAt(y, heightDp, false); assertTrue("monotonic at $y", a <= prev + 1e-4f); prev = a; y += 2f }
+        // no visible edge: the slope never exceeds a smoothstep's 1.5x the average
+        val avg = ScrimSpec.NIGHT_ALPHA / (0.34f * heightDp - plateau)
+        var yy = plateau
+        while (yy < 0.34f * heightDp - 2f) { assertTrue(ScrimSpec.alphaAt(yy, heightDp, false) - ScrimSpec.alphaAt(yy + 2f, heightDp, false) <= 2f * avg * 1.8f); yy += 2f }
+    }
+
+    @Test
+    fun `images get a top veil of 0_18 when dark up to 0_40 when bright, and scenes keep their tuned plateau`() {
+        assertEquals(0.18f, ScrimSpec.topAlpha(35, false), 0.001f)
+        assertEquals(0.40f, ScrimSpec.topAlpha(200, true), 0.001f)
+        assertTrue(ScrimSpec.topAlpha(110, false) in 0.2f..0.35f)
+        assertTrue(ScrimSpec.topAlpha(60, false) < ScrimSpec.topAlpha(140, false))
+        assertEquals(ScrimSpec.NIGHT_ALPHA, ScrimSpec.topAlpha(null, false), 0f)
+        assertEquals(ScrimSpec.DAY_ALPHA, ScrimSpec.topAlpha(null, true), 0f)
+        assertEquals(0.40f, ScrimSpec.alphaAt(60f, heightDp, false, top = 0.40f), 0.001f)
     }
 
     @Test

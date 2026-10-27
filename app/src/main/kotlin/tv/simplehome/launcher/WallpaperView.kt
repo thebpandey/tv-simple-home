@@ -323,14 +323,20 @@ class WallpaperView(context: Context) : View(context) {
 
     private var scrimDay = false
     private var scrimBoost = 1f
+    private var scrimTop = -1f // top veil strength for images, -1 for scenes (they keep their tuned plateau)
+
+    /** Images get a top veil of 0.18 (dark) to 0.40 (bright) by the manifest luma; photos without one are treated as bright-ish. */
+    private fun topAlphaFor(key: Int): Float =
+        if (!WallpaperSchedule.isPhotoKey(key)) -1f else ScrimSpec.topAlpha(lumaFor(key) ?: 150, uiDay)
 
     /** Day/night swaps the scrim colour set (dark vs light frosted); gradient is rebuilt only when that flips. */
     private fun rebuildScrim(w: Int, h: Int) {
         if (h <= 0) return
         val hDp = h / resources.displayMetrics.density
         scrimBoost = scrimBoostFor(current)
+        scrimTop = topAlphaFor(current)
         scrimPaint.shader = LinearGradient(
-            0f, 0f, 0f, h.toFloat(), ScrimSpec.colors(uiDay, scrimBoost), ScrimSpec.positions(hDp), Shader.TileMode.CLAMP,
+            0f, 0f, 0f, h.toFloat(), ScrimSpec.colors(uiDay, scrimBoost, if (scrimTop < 0f) null else scrimTop), ScrimSpec.positions(hDp), Shader.TileMode.CLAMP,
         )
         scrimDay = uiDay
     }
@@ -338,7 +344,7 @@ class WallpaperView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         val t0 = if (BuildConfig.DEBUG) System.nanoTime() else 0L
         val wantBoost = scrimBoostFor(current)
-        if (scrimDay != uiDay || scrimBoost != wantBoost) rebuildScrim(width, height)
+        if (scrimDay != uiDay || scrimBoost != wantBoost || scrimTop != topAlphaFor(current)) rebuildScrim(width, height)
         val tSec = (frameMs - baseMs) / 1000f
         val w = width.toFloat()
         val h = height.toFloat()

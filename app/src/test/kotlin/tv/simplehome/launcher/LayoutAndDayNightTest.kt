@@ -91,13 +91,20 @@ class LayoutAndDayNightTest {
     }
 
     @Test
-    fun `the glass header cards fit their rows, the weather card stays within its keep-out height, the banner card within its slot`() {
-        val clockLine = 56f * 1.21f // Inter's line height at 56sp
-        assertTrue(clockLine + 2 * LayoutBudget.CARD_PAD_V_DP <= LayoutBudget.TOP_BAR_DP)
-        assertTrue(LayoutBudget.WEATHER_WIDGET_DP <= LayoutBudget.WEATHER_CARD_H_DP)
-        assertTrue(LayoutBudget.WEATHER_CARD_H_DP <= LayoutBudget.TOP_BAR_DP)
-        val bannerWorst = 24 + 17 + 16 + 2 * 12 + 8 // 20sp name + 14sp date + 13sp note + card padding + gap
-        assertTrue(bannerWorst <= LayoutBudget.BANNER_MAX_DP)
-        assertTrue("quote keeps its 140dp", LayoutBudget.homeFits())
+    fun `the card-less header keeps the v2_6 sizes, the banner stays inside its 60dp slot and the weather group inside the top bar`() {
+        assertEquals(88, LayoutBudget.TOP_BAR_DP)
+        assertEquals(60, LayoutBudget.BANNER_MAX_DP)
+        assertTrue(64f * 1.21f <= LayoutBudget.TOP_BAR_DP) // 64sp clock line
+        assertTrue(LayoutBudget.WEATHER_WIDGET_DP <= LayoutBudget.TOP_BAR_DP)
+        // 16sp title + 13sp date + 12sp note at Inter's 1.21 line height, plus 4dp bottom padding
+        val bannerWorst = (16 + 13 + 12) * 1.21f + 4f
+        assertTrue("banner needs $bannerWorst", bannerWorst <= LayoutBudget.BANNER_MAX_DP)
+    }
+
+    @Test
+    fun `the centre is always tall enough for the tallest fitted quote block, with the banner showing`() {
+        assertTrue(LayoutBudget.QUOTE_MIN_DP >= QuoteFit.maxBlockDp())
+        assertTrue("centre ${LayoutBudget.centerDp(true)}", LayoutBudget.centerDp(true) >= QuoteFit.maxBlockDp())
+        assertTrue(LayoutBudget.homeFits())
     }
 }
