@@ -15,6 +15,7 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
     private val condition = text(14f, COLOR_TEXT)
     private val place = text(14f, COLOR_MUTED)
     private val air = text(13f, COLOR_MUTED).apply { visibility = GONE }
+    private val pollen = text(13f, COLOR_MUTED).apply { visibility = GONE }
     private val border = GradientDrawable().apply {
         cornerRadius = context.dp(12).toFloat()
         setColor(Color.TRANSPARENT)
@@ -43,7 +44,10 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
             addView(condition, LayoutParams(-2, -2))
             addView(place, LayoutParams(-2, -2))
             addView(air, LayoutParams(-2, -2))
+            addView(pollen, LayoutParams(-2, -2))
         }
+        // Without font padding the four lines take their nominal heights (19+17+15+15dp), which is what fits the 88dp top bar.
+        for (t in listOf(condition, place, air, pollen)) t.includeFontPadding = false
         addView(col, LayoutParams(-2, -2))
         setOnFocusChangeListener { _, focused ->
             // Same focus style as the tiles: accent border + 1.06x, and nothing at all when unfocused.
@@ -63,7 +67,7 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
         border.cornerRadius = context.dp(12).toFloat() - context.dp(1) // concentric with the card's 12dp outline
         focusCard.setColor(Glass.fill)
         // No card behind the weather text: a soft shadow keeps it readable on the wallpaper.
-        for (t in listOf(temp, condition, place, air)) t.headerShadow()
+        for (t in listOf(temp, condition, place, air, pollen)) t.headerShadow()
     }
 
     fun show(data: WeatherData, placeName: String) {
@@ -87,6 +91,20 @@ class WeatherWidget(context: Context) : LinearLayout(context) {
 
     fun hideAir() {
         air.visibility = GONE
+    }
+
+    /** Same compact dot-and-line style as air quality, on its own line and with its own staleness. */
+    fun showPollen(data: PollenData) {
+        val sp = android.text.SpannableString("\u25CF ${PollenRules.line(data)}")
+        val dot = AirQualityRules.dotColor(PollenRules.dotCategory(PollenRules.peak(data)), Palette.day)
+        sp.setSpan(android.text.style.ForegroundColorSpan(dot), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        pollen.text = sp
+        pollen.setTextColor(Palette.text70)
+        pollen.visibility = VISIBLE
+    }
+
+    fun hidePollen() {
+        pollen.visibility = GONE
     }
 
     fun hide() {

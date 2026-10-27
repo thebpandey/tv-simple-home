@@ -24,7 +24,7 @@ enum class AqiCategory(val shortLabel: String, val color: Int) {
 /** Pure air-quality rules: URL, defensive parsing of the untrusted response, categories and the display line. */
 object AirQualityRules {
     fun buildUrl(lat: Double, lon: Double): String =
-        // Pollen is deliberately not requested: the API returns null for it in the US.
+        // Pollen is not requested here: Open-Meteo returns null for it in the US, so it comes from Google's Pollen API (Pollen.kt).
         "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=$lat&longitude=$lon&current=us_aqi,pm2_5,dust&timezone=auto"
 
     fun category(aqi: Int): AqiCategory = when {

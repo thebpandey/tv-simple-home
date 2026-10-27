@@ -1,11 +1,11 @@
 # Simple Home: a minimal Android TV launcher
 
-A lightweight, macOS-inspired home screen for Android TV / Google TV. It replaces the stock launcher and has no ads, trailers or tracking. Its only network use is a small weather and air-quality request every 15 minutes.
+A lightweight, macOS-inspired home screen for Android TV / Google TV. It replaces the stock launcher and has no ads, trailers or tracking. Its only network use is a small weather and air-quality request every 15 minutes, plus an optional pollen request every 6 hours.
 
 ## Features
 - A macOS-style dock with squircle app icons, magnification and lift, and a collapsible menu (Inputs, Settings, Wallpaper, All apps).
 - A Launchpad-style All apps grid.
-- Glass widget cards for the clock (with a second time zone), weather (Open-Meteo) and air quality (US AQI).
+- Glass widget cards for the clock (with a second time zone), weather (Open-Meteo), air quality (US AQI) and an optional pollen forecast (Google Pollen API).
 - A centered quote that rotates every 5 minutes from about 680 sourced public-domain and Wikiquote-verified quotes, with day and evening sets.
 - Wallpapers:
   - animated procedural scenes with parallax;
@@ -36,6 +36,16 @@ Photos and paintings are not included in this repo. The app reads them at runtim
 - `Android/data/tv.simplehome.launcher/files/scenes/` holds the paintings plus a `scenes.json` manifest.
 
 See `PhotoStore.kt` and `StillStore.kt` for the manifest formats. The procedural scenes work without any extra content.
+
+## Pollen (optional)
+The pollen line needs your own Google Maps Platform API key with the Pollen API enabled. Restrict the key to the Pollen API and set a daily quota. The key is never built into the APK; write it to the app's storage on the TV:
+
+```
+printf %s "$KEY" | adb exec-in "cat > /sdcard/Android/data/tv.simplehome.launcher/files/pollen.key"
+adb shell chmod 644 /sdcard/Android/data/tv.simplehome.launcher/files/pollen.key
+```
+
+Without the file, the pollen line stays hidden and no pollen request is made.
 
 ## Credits
 - [Inter](https://rsms.me/inter/) typeface (SIL Open Font License); see `licenses/`.

@@ -15,4 +15,12 @@ object FocusRestore {
             else -> RestoreTarget.Menu
         }
     }
+
+    /**
+     * Whether a rebuild may leave focus where the framework put it. Rebuilding the dock (on every resume, e.g. after the TV wakes)
+     * removes the focused tile and the framework hands focus to the next focusable view, the weather widget. That is kept only when
+     * the user had put focus there; otherwise focus goes back to the dock.
+     */
+    fun keepCurrent(currentShown: Boolean, currentIsWeather: Boolean, weatherWasFocused: Boolean): Boolean =
+        currentShown && (!currentIsWeather || weatherWasFocused)
 }

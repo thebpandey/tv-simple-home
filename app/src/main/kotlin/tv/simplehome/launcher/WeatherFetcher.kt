@@ -17,9 +17,10 @@ object WeatherFetcher {
      * NETWORK USE: this is the ONLY network call site in the app and the sole reason for the INTERNET
      * permission. Hosts: api.open-meteo.com (forecast; sends only the saved coordinates),
      * geocoding-api.open-meteo.com and api.zippopotam.us (location lookup; sends only the text the user
-     * typed). No keys, no identifiers. Blocking: call from a background thread.
+     * typed), and pollen.googleapis.com (pollen; sends the saved coordinates plus the on-device API key, in a header so it never
+     * sits in a URL). No other keys, no identifiers. Blocking: call from a background thread.
      */
-    fun fetch(url: String): FetchOutcome {
+    fun fetch(url: String, headers: Map<String, String> = emptyMap()): FetchOutcome {
         var conn: HttpURLConnection? = null
         return try {
             // https URLs always yield HttpURLConnection.
@@ -27,6 +28,7 @@ object WeatherFetcher {
             conn.connectTimeout = TIMEOUT_MS
             conn.readTimeout = TIMEOUT_MS
             conn.requestMethod = "GET"
+            for ((k, v) in headers) conn.setRequestProperty(k, v)
             if (conn.responseCode != HttpURLConnection.HTTP_OK) {
                 FetchOutcome.Error(FailureReason.HTTP_ERROR)
             } else {

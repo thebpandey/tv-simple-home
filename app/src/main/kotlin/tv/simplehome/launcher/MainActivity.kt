@@ -44,6 +44,10 @@ private const val PREF_WALLPAPER = "wallpaper"
 private const val PREF_FESTIVAL_WP = "festival_wallpapers"
 private const val PREF_AQ_BODY = "aq_body"
 private const val PREF_AQ_TIME = "aq_time"
+private const val PREF_POLLEN_BODY = "pollen_body"
+private const val PREF_POLLEN_TIME = "pollen_time"
+private const val PREF_POLLEN_TRY = "pollen_try"
+private const val PREF_POLLEN_KEY_TAG = "pollen_key_tag"
 private const val PREF_WX_BODY = "wx_body"
 private const val PREF_WX_TIME = "wx_time"
 private const val PREF_WX_NAME = "wx_name"
@@ -724,12 +728,13 @@ class MainActivity : Activity() {
 
     private fun refresh() {
         val focusKey = (currentFocus as? FocusItem)?.key
+        val weatherWasFocused = currentFocus === weatherWidget
         apps = scanApps()
         val saved = Favorites.deserialize(prefs.getString(PREF_FAVORITES, null))
         favorites = Favorites.resolve(saved, apps.map { it.pkg }.toSet())
         rebuildHome()
         if (showingAll) rebuildAll()
-        restoreFocus(focusKey)
+        restoreFocus(focusKey, weatherWasFocused)
     }
 
     /** Auto-fit: tile width chosen so all favorites fit with the magnification headroom; otherwise scroll with a soft edge. */
@@ -1170,13 +1175,13 @@ class MainActivity : Activity() {
         homeColumn.post { if (!target.requestFocus()) (favRow.getChildAt(0) ?: menuButton).requestFocus() }
     }
 
-    private fun restoreFocus(key: String?) {
+    private fun restoreFocus(key: String?, weatherWasFocused: Boolean = false) {
         val root = if (showingAll) allList else homeColumn
         val tiles = ArrayList<FocusItem>()
         collectTiles(root, tiles)
         if (tiles.isEmpty()) return
         val current = currentFocus
-        if (current != null && current.isShown) return
+        if (current != null && FocusRestore.keepCurrent(current.isShown, current === weatherWidget, weatherWasFocused)) return
         val target = tiles.firstOrNull { it.key == key }
             ?: tiles.firstOrNull { it.key.startsWith("fav:") }
             ?: tiles.first()
@@ -1237,7 +1242,7 @@ class MainActivity : Activity() {
         renderWeather() // cached data shows immediately
         // Each cache decides on its own: a fresh weather cache must not keep a missing air-quality cache from being fetched.
         val plan = Weather.fetchPlan(cacheAgeMs(), aqAgeMs())
-        if (plan.weather || plan.air) fetchWeather(force = false)
+        fetchWeather(force = false) // always: pollen's due check reads the key file, which only happens on the background thread
         handler.postDelayed(weatherTick, Weather.nextTickDelayMs(cacheAgeMs(), aqAgeMs()))
     }
 
@@ -1250,23 +1255,41 @@ class MainActivity : Activity() {
     private fun aqAgeMs(): Long? =
         if (prefs.getString(PREF_AQ_BODY, null) == null) null else System.currentTimeMillis() - prefs.getLong(PREF_AQ_TIME, 0L)
 
+    private fun pollenAgeMs(): Long? =
+        if (prefs.getString(PREF_POLLEN_BODY, null) == null) null else System.currentTimeMillis() - prefs.getLong(PREF_POLLEN_TIME, 0L)
+
+    private fun pollenAttemptAgeMs(): Long? =
+        if (prefs.contains(PREF_POLLEN_TRY)) System.currentTimeMillis() - prefs.getLong(PREF_POLLEN_TRY, 0L) else null
+
     private fun fetchWeather(force: Boolean) {
         val ex = weatherExecutor?.takeIf { !it.isShutdown } ?: return
         val place = loadPlace()
         val gen = weatherGen
         val plan = if (force) Weather.FetchPlan(weather = true, air = true) else Weather.fetchPlan(cacheAgeMs(), aqAgeMs())
+        // Pollen keeps its own 6-hour cadence even on the forced 15-minute tick: it is a daily forecast from a billed API.
+        val pollenAge = pollenAgeMs()
+        val pollenAttemptAge = pollenAttemptAgeMs()
+        val lastKeyTag = if (prefs.contains(PREF_POLLEN_KEY_TAG)) prefs.getInt(PREF_POLLEN_KEY_TAG, 0) else null
+        val filesDir = getExternalFilesDir(null)
         ex.execute {
             // Two independent requests on the same background thread; either may fail without affecting the other.
             val wx = if (plan.weather) WeatherFetcher.fetch(Weather.buildUrl(place.lat, place.lon)) else null
             val wxValid = wx is FetchOutcome.Body && Weather.parse(wx.text) is WeatherResult.Success
             val aq = if (plan.air) WeatherFetcher.fetch(AirQualityRules.buildUrl(place.lat, place.lon)) else null
             val aqValid = aq is FetchOutcome.Body && AirQualityRules.parse(aq.text) is AirQualityResult.Success
+            val key = PollenRules.loadKey(filesDir)?.takeIf {
+                PollenRules.isDue(pollenAge, pollenAttemptAge, keyChanged = PollenRules.keyTag(it) != lastKeyTag)
+            }
+            val pl = key?.let { WeatherFetcher.fetch(PollenRules.buildUrl(place.lat, place.lon), mapOf(PollenRules.KEY_HEADER to it)) }
+            val plValid = pl is FetchOutcome.Body && PollenRules.parse(pl.text) is PollenResult.Success
             handler.post {
                 if (gen == weatherGen) {
                     val edit = prefs.edit()
                     val now = System.currentTimeMillis()
                     if (wxValid && wx is FetchOutcome.Body) edit.putString(PREF_WX_BODY, wx.text).putLong(PREF_WX_TIME, now)
                     if (aqValid && aq is FetchOutcome.Body) edit.putString(PREF_AQ_BODY, aq.text).putLong(PREF_AQ_TIME, now)
+                    if (pl != null && key != null) edit.putLong(PREF_POLLEN_TRY, now).putInt(PREF_POLLEN_KEY_TAG, PollenRules.keyTag(key))
+                    if (plValid && pl is FetchOutcome.Body) edit.putString(PREF_POLLEN_BODY, pl.text).putLong(PREF_POLLEN_TIME, now)
                     edit.apply()
                 }
                 renderWeather() // failures just leave the caches as they are; never an error UI
@@ -1280,6 +1303,7 @@ class MainActivity : Activity() {
         if (result is WeatherResult.Success) {
             weatherWidget.show(result.data, loadPlace().name)
             renderAir()
+            renderPollen()
         } else {
             weatherWidget.hide()
         }
@@ -1291,6 +1315,13 @@ class MainActivity : Activity() {
         val age = if (body == null) null else System.currentTimeMillis() - prefs.getLong(PREF_AQ_TIME, 0L)
         val result = if (body != null && Weather.shouldShow(age)) AirQualityRules.parse(body) else null
         if (result is AirQualityResult.Success) weatherWidget.showAir(result.data) else weatherWidget.hideAir()
+    }
+
+    /** Pollen also stands alone: with no key on the device, or a stale or failed forecast, only its line disappears. */
+    private fun renderPollen() {
+        val body = prefs.getString(PREF_POLLEN_BODY, null)
+        val result = if (body != null && PollenRules.shouldShow(pollenAgeMs())) PollenRules.parse(body) else null
+        if (result is PollenResult.Success) weatherWidget.showPollen(result.data) else weatherWidget.hidePollen()
     }
 
     private fun openWeatherPanel() {
@@ -1342,6 +1373,7 @@ class MainActivity : Activity() {
             .putString(PREF_WX_NAME, next.name).putString(PREF_WX_LAT, next.lat.toString())
             .putString(PREF_WX_LON, next.lon.toString()).putString(PREF_WX_INPUT, next.input)
             .remove(PREF_WX_BODY).remove(PREF_WX_TIME).remove(PREF_AQ_BODY).remove(PREF_AQ_TIME)
+            .remove(PREF_POLLEN_BODY).remove(PREF_POLLEN_TIME).remove(PREF_POLLEN_TRY)
             .apply()
         weatherGen++
         updateDayNight() // sunrise/sunset depend on the saved location

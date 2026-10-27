@@ -67,8 +67,9 @@ object LayoutBudget {
     /** How far a focused item of the given size grows past its own bounds, per side, at [scale]. */
     fun focusOverflowDp(sizeDp: Float, scale: Float): Float = (scale - 1f) / 2f * sizeDp
 
-    // The weather widget text column: condition+high/low 16sp (19) + place 14sp (17) + air quality 12sp (15), plus 10dp padding top and bottom.
-    const val WEATHER_WIDGET_DP = 19 + 17 + 15 + 20
+    // The weather widget text column: condition+high/low 16sp (19) + place 14sp (17) + air quality and pollen 13sp (15 each), plus 10dp
+    // padding top and bottom.
+    const val WEATHER_WIDGET_DP = 19 + 17 + 15 + 15 + 20
 
     // Fixed screen positions (dp from the top) of the content the scrim has to protect.
     val SCRIM_HEADER_END_DP = SAFE_TOP_BOTTOM_DP + header(true) // 175: the top scrim holds its full strength through the whole header, banner lines included
