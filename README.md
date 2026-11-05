@@ -6,13 +6,13 @@ A lightweight, macOS-inspired home screen for Android TV / Google TV. It replace
 - A macOS-style dock with squircle app icons, magnification and lift, and a collapsible menu (Inputs, Settings, Wallpaper, All apps).
 - Choose dock apps from All apps (long-press OK, or Menu) and reorder them with Move: slide the app with left and right, OK places it, Back cancels.
 - A Launchpad-style All apps grid.
-- Glass widget cards for the clock (with a second time zone), weather (Open-Meteo), air quality (US AQI) and an optional pollen forecast (Google Pollen API).
+- Glass widget cards for the clock (with a second clock for a city you pick; its time zone follows the city), weather (Open-Meteo), air quality (US AQI) and an optional pollen forecast (Google Pollen API).
 - A centered quote that rotates every 5 minutes from about 680 sourced public-domain and Wikiquote-verified quotes, with day and evening sets.
 - Wallpapers:
   - animated procedural scenes with parallax;
   - your own photos;
   - painted stills, auto-rotating every 30 minutes and matched to day or night by local sunrise and sunset, calculated offline with the NOAA algorithm.
-- Festival and US federal holiday banners with countdowns and themed wallpapers.
+- Festival and US federal holiday banners from a week ahead, with countdowns and themed wallpapers; festivals that fall close together are shown side by side.
 - Idle mode that fades the UI to show the wallpaper.
 - Built with framework Views only (no AndroidX, Compose or Leanback), and runs in about 40–50 MB.
 

@@ -27,11 +27,20 @@ data class Festival(
     val observedRule: Boolean = false,
 )
 
+/** One banner entry: a festival, or one named day of a multi-day festival (Dhanteras, Diwali, ... are each their own entry). */
+data class BannerItem(val festival: Festival, val title: String, val occurrence: FestivalOccurrence) {
+    val day: LocalDate get() = occurrence.primary
+}
+
 data class ActiveFestival(val festival: Festival, val main: FestivalOccurrence) {
     val mainDay: LocalDate get() = main.primary
 }
 
-data class FestivalBanner(val title: String, val dateLine: String, val indiaLine: String?, val observedLine: String? = null)
+/** [day] is the date the banner is about (the named day inside a multi-day festival, else the main day). */
+data class FestivalBanner(
+    val title: String, val dateLine: String, val indiaLine: String?, val observedLine: String? = null,
+    val day: LocalDate = LocalDate.MIN,
+)
 
 /** Pure festival rules: rule-based Western dates, window resolution, and banner text. */
 object Festivals {
@@ -152,6 +161,76 @@ object Festivals {
         return best
     }
 
+    /** Banners appear this many days before a festival's first day (Dhanteras for Diwali, the main day for one-day festivals). */
+    const val LEAD_DAYS = 7L
+
+    /** Banner period: from [LEAD_DAYS] before the festival's first day (or its window start, if earlier) through its window end. */
+    fun bannerPeriod(f: Festival, main: FestivalOccurrence, dates: Map<String, List<FestivalOccurrence>> = festivalDates): Pair<LocalDate, LocalDate> {
+        val (start, end) = windowFor(f, main, dates)
+        val year = main.primary.year
+        val firstDay = f.startKey?.let { k -> dates[k].orEmpty().firstOrNull { it.primary.year == year }?.primary } ?: main.primary
+        return minOf(start, firstDay.minusDays(LEAD_DAYS)) to end
+    }
+
+    /**
+     * Every festival to show in the banner on [date]: those in their window and those starting within [LEAD_DAYS]. The one
+     * [activeOn] picks (it also drives the wallpaper) comes first; the rest follow by main day, then list order. One entry per festival.
+     */
+    fun bannerList(
+        date: LocalDate,
+        dates: Map<String, List<FestivalOccurrence>> = festivalDates,
+        festivals: List<Festival> = ALL,
+    ): List<ActiveFestival> {
+        val found = LinkedHashMap<String, ActiveFestival>()
+        for (f in festivals) {
+            for (year in date.year - 1..date.year + 1) {
+                for (main in mainDays(f, year, dates)) {
+                    val (start, end) = bannerPeriod(f, main, dates)
+                    if (date.isBefore(start) || date.isAfter(end)) continue
+                    val prev = found[f.id]
+                    if (prev == null || main.primary.isBefore(prev.mainDay)) found[f.id] = ActiveFestival(f, main)
+                }
+            }
+        }
+        val primary = activeOn(date, dates, festivals)
+        val order = festivals.map { it.id }
+        val rest = found.values.filter { it.festival.id != primary?.festival?.id }
+            .sortedWith(compareBy({ it.mainDay }, { order.indexOf(it.festival.id) }))
+        return listOfNotNull(primary) + rest
+    }
+
+    /**
+     * Banner entries for [date]. A multi-day festival is split into its named days, each shown from [LEAD_DAYS] before it until it
+     * has passed, so Dhanteras and Diwali both appear when both are near. The first entry belongs to the festival [activeOn] picks
+     * (today's named day, else its next one); the rest follow by date, then list order.
+     */
+    fun bannerItems(
+        date: LocalDate,
+        dates: Map<String, List<FestivalOccurrence>> = festivalDates,
+        festivals: List<Festival> = ALL,
+    ): List<BannerItem> {
+        val order = festivals.map { it.id }
+        val items = ArrayList<BannerItem>()
+        for (a in bannerList(date, dates, festivals)) {
+            val f = a.festival
+            val days = f.dayNames.mapNotNull { (key, name) ->
+                dates[key].orEmpty().firstOrNull { it.primary.year == a.mainDay.year }?.let { BannerItem(f, name, it) }
+            }.filter { !it.day.isBefore(date) && !date.isBefore(it.day.minusDays(LEAD_DAYS)) }
+            // A festival without named days (or none left to show while it is still in its window) keeps one entry for its main day.
+            items += days.ifEmpty { listOf(BannerItem(f, f.displayName, a.main)) }
+        }
+        val primaryId = activeOn(date, dates, festivals)?.festival?.id
+        return items.sortedWith(compareBy({ if (it.festival.id == primaryId) 0 else 1 }, { it.day }, { order.indexOf(it.festival.id) }))
+    }
+
+    /** Full banner text for the first entry: title, long date with countdown, and the India or observed note when there is one. */
+    fun bannerForItem(item: BannerItem, today: LocalDate, locale: Locale = Locale.getDefault()): FestivalBanner {
+        val o = item.occurrence
+        val india = if (o.india != o.primary) "India: " + o.india.format(DateTimeFormatter.ofPattern("EEEE, MMMM d", locale)) else null
+        val observed = if (item.festival.observedRule) observedLine(o.primary, locale) else null
+        return FestivalBanner(item.title, bannerDateLine(today, o.primary, locale), india, observed, o.primary)
+    }
+
     private data class Rank(val mainDay: Int, val holiday: Int, val windowLength: Int, val listIndex: Int)
 
     private fun compareRank(a: Rank, b: Rank): Int =
@@ -184,7 +263,18 @@ object Festivals {
         }
         val india = if (shown.india != shown.primary) "India: " + shown.india.format(DateTimeFormatter.ofPattern("EEEE, MMMM d", locale)) else null
         val observed = if (active.festival.observedRule) observedLine(shown.primary, locale) else null
-        return FestivalBanner(title, bannerDateLine(today, shown.primary, locale), india, observed)
+        return FestivalBanner(title, bannerDateLine(today, shown.primary, locale), india, observed, shown.primary)
+    }
+
+    /** "in 4 days" / "Tomorrow" / "Today" for an entry in the stacked rows; a day already passed (a festival still in its window) shows "Thu, Dec 25". */
+    fun rowWhen(today: LocalDate, day: LocalDate, locale: Locale = Locale.getDefault()): String =
+        relativeText(today, day) ?: day.format(DateTimeFormatter.ofPattern("EEE, MMM d", locale))
+
+    /** Short date line for the extra festivals beside the main one: "Wed, Nov 11  ·  in 6 days". */
+    fun compactDateLine(today: LocalDate, day: LocalDate, locale: Locale = Locale.getDefault()): String {
+        val date = day.format(DateTimeFormatter.ofPattern("EEE, MMM d", locale))
+        val rel = relativeText(today, day)
+        return if (rel == null) date else "$date  \u00B7  $rel"
     }
 
     /** Second banner line: the main day's date, plus the countdown when it is today or still ahead. */

@@ -12,13 +12,15 @@ object LayoutBudget {
     const val SAFE_TOP_BOTTOM_DP = 27
     const val SAFE_HEIGHT_DP = SCREEN_DP - 2 * SAFE_TOP_BOTTOM_DP // 486
 
-    // Header: clock 40sp, date 18sp, New Delhi 16sp, weather widget; plus a festival banner of up to 3 lines.
+    // Header: clock 40sp, date 18sp, second clock city 16sp, weather widget; plus a festival banner of up to 3 lines.
     // Card-less header: the clock group (64sp clock, date, New Delhi) on the left and the weather group on the right sit directly on the
     // wallpaper, kept readable by a soft text shadow and the top scrim. The festival banner (16/13/12sp) sits under the clock group.
     const val TOP_BAR_DP = 88 // clock 64sp light, date 17sp, weather 44sp
     const val BANNER_MAX_DP = 60
     const val CLOCK_GROUP_RIGHT_DP = 450f // estimates of the text groups' extents at 960dp (Inter at these sizes), kept slightly generous
-    const val BANNER_RIGHT_DP = 380f
+    // Several festival columns can sit side by side; the row stops here, left of every scene's sun/moon (focals sit at x >= 800dp).
+    const val BANNER_RIGHT_DP = 760f
+    const val SAFE_SIDE_DP = 48f
     const val WEATHER_LEFT_DP = 540f
 
     // Quote block, worst case: 4 lines of 19.5sp Inter Light at 1.3 line height + the 15sp author + paddings (see QuoteFit.maxBlockDp); the centre never shrinks below it.

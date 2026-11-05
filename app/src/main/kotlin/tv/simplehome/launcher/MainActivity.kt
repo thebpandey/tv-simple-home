@@ -71,6 +71,8 @@ private const val DOCK_MS = 220L
 /** Largest icon any screen draws, shared by the dock and the Launchpad (one cache, one size): dock 56.3dp x 1.45 = 81.6dp, Launchpad 72dp x 1.15 = 82.8dp. */
 private val ICON_MAX_DP = maxOf(LayoutBudget.ICONS_SPEC.maxBaseDp * LayoutBudget.ICONS_SPEC.magFocus, LayoutBudget.ALL_ICON_DP * LayoutBudget.ALL_FOCUS_SCALE)
 private const val PREF_DAYNIGHT = "day_night_mode"
+private const val PREF_SECOND_CITY = "second_clock_city"
+private const val ROWS_PER_COLUMN = 3 // 3 x 13sp rows fit the banner's 60dp slot
 
 private class AppEntry(val pkg: String, val label: String, val info: ResolveInfo)
 
@@ -100,6 +102,8 @@ class MainActivity : Activity() {
     private var shelfRestPx = 0f
     private var shelfGrowthPx = 0f // magnification growth, animated with the tiles
     private lateinit var delhiRow: View
+    private lateinit var secondCityName: TextView
+    private lateinit var secondCityClock: TextClock
     private val pills = ArrayList<Tile>()
     private var menuExpanded = false
     private var lastDockFocus: View? = null
@@ -120,9 +124,6 @@ class MainActivity : Activity() {
     private lateinit var wallpaper: WallpaperView
     private lateinit var homeColumn: LinearLayout
     private lateinit var festivalBanner: LinearLayout
-    private lateinit var festivalName: TextView
-    private lateinit var festivalDate: TextView
-    private lateinit var festivalIndia: TextView
     private val quoteTexts = ArrayList<TextView>() // home footer and All apps footer show the same quote
     private val quoteAuthors = ArrayList<TextView>()
     private var shownQuote: Quote? = null
@@ -458,17 +459,18 @@ class MainActivity : Activity() {
         })
         val delhi = LinearLayout(this).apply { gravity = Gravity.BOTTOM }
         delhiRow = delhi
-        delhi.addView(TextView(this).apply {
-            text = "New Delhi"
+        secondCityName = TextView(this).apply {
             style(400, 17f)
             setPadding(0, 0, dp(8), 0)
             themed.add { setTextColor(Palette.text70); headerShadow() }
-        })
-        delhi.addView(TextClock(this).apply {
-            timeZone = "Asia/Kolkata"
+        }
+        secondCityClock = TextClock(this).apply {
             style(400, 17f, tabular = true)
             themed.add { setTextColor(Palette.text70); headerShadow() }
-        })
+        }
+        delhi.addView(secondCityName)
+        delhi.addView(secondCityClock)
+        applySecondCity()
         info.addView(delhi)
         bar.addView(info)
         bar.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
@@ -514,7 +516,7 @@ class MainActivity : Activity() {
     private fun applyTheme() {
         Palette.day = uiDay
         for (t in themed) t()
-        if (::festivalName.isInitialized) updateFestival()
+        if (::festivalBanner.isInitialized) updateFestival()
     }
 
     private fun resolveDay(): Boolean {
@@ -561,51 +563,81 @@ class MainActivity : Activity() {
 
     // ---------- Festival ----------
 
-    /** Festival / holiday banner under the clock group, left-aligned with it: 16sp title in the accent colour, 13sp date, 12sp note. */
+    /**
+     * Festival / holiday banner under the clock group, left-aligned with it, filled from [Festivals.bannerItems]. The first entry
+     * (today's festival or the next one) is a full column: 16sp title, 13sp date with countdown, 12sp India/observed note. Every
+     * other entry is a one-line 13sp row ("Diwali  in 3 days"), stacked up to three per column so the banner keeps its
+     * 60dp height. The row stops at [LayoutBudget.BANNER_RIGHT_DP], clear of every scene's sun and moon; long rows ellipsize.
+     */
     private fun buildFestivalBanner(): View {
-        festivalName = TextView(this).apply {
-            style(600, 16f)
-            themed.add { headerShadow() }
-        }
-        festivalDate = TextView(this).apply {
-            style(400, 13f)
-            themed.add { setTextColor(Palette.text70); headerShadow() }
-        }
-        festivalIndia = TextView(this).apply {
-            style(400, 12f)
-            visibility = View.GONE
-            themed.add { setTextColor(Palette.text60); headerShadow() }
-        }
         festivalBanner = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+            orientation = LinearLayout.HORIZONTAL
             visibility = View.GONE
             setPadding(0, 0, 0, dp(4))
-            addView(festivalName, LinearLayout.LayoutParams(-2, -2))
-            addView(festivalDate, LinearLayout.LayoutParams(-2, -2))
-            addView(festivalIndia, LinearLayout.LayoutParams(-2, -2))
         }
         return festivalBanner
+    }
+
+    private fun accentDot(f: Festival) = android.text.SpannableString("\u25CF ").apply {
+        setSpan(android.text.style.ForegroundColorSpan(Palette.festival(f.accent)), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        setSpan(android.text.style.RelativeSizeSpan(0.7f), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
+
+    private fun bannerText(text: CharSequence, weight: Int, sp: Float, color: Int) = TextView(this).apply {
+        style(weight, sp)
+        setTextColor(color)
+        headerShadow()
+        this.text = text
+    }
+
+    /** The first entry. The name is in the solid text colour (an accent colour had too little contrast over busy paintings); the accent is the dot. */
+    private fun primaryFestivalColumn(item: BannerItem, today: LocalDate): LinearLayout {
+        val banner = Festivals.bannerForItem(item, today)
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(bannerText(android.text.SpannableStringBuilder(accentDot(item.festival)).append(banner.title), 600, 16f, Palette.text))
+            addView(bannerText(banner.dateLine, 400, 13f, Palette.text70))
+            (banner.indiaLine ?: banner.observedLine)?.let { addView(bannerText(it, 400, 12f, Palette.text60)) }
+        }
+    }
+
+    private fun festivalRow(item: BannerItem, today: LocalDate, maxWidthPx: Int): TextView {
+        val date = Festivals.rowWhen(today, item.day) // within a week the countdown says it all; a date would push it off the row
+        val text = android.text.SpannableStringBuilder(accentDot(item.festival)).append(item.title).append("  ")
+        val start = text.length
+        text.append(date)
+        text.setSpan(android.text.style.ForegroundColorSpan(Palette.text70), start, text.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return bannerText(text, 500, 13f, Palette.text).apply {
+            setSingleLine()
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            maxWidth = maxWidthPx
+        }
     }
 
     /** Banner always follows the calendar; the wallpaper override additionally needs the toggle (and Auto mode, see WallpaperSchedule.keyAt). */
     private fun updateFestival() {
         val today = LocalDate.now()
-        val active = Festivals.activeOn(today, festivals = Festivals.enabled(prefs.getBoolean(PREF_US_HOLIDAYS, true)))
-        if (active == null) {
+        val festivals = Festivals.enabled(prefs.getBoolean(PREF_US_HOLIDAYS, true))
+        val active = Festivals.activeOn(today, festivals = festivals) // in its window: drives the wallpaper
+        val items = Festivals.bannerItems(today, festivals = festivals) // every festival or named day within a week
+        festivalBanner.removeAllViews()
+        if (items.isEmpty()) {
             festivalBanner.visibility = View.GONE
         } else {
-            val banner = Festivals.bannerFor(active, today)
-            // The name is in the solid text colour (a deep accent colour had too little contrast over busy paintings); the festival's
-            // accent survives as a small dot before it, like the air-quality dot.
-            festivalName.text = android.text.SpannableString("\u25CF ${banner.title}").apply {
-                setSpan(android.text.style.ForegroundColorSpan(Palette.festival(active.festival.accent)), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                setSpan(android.text.style.RelativeSizeSpan(0.7f), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            val gap = dp(28)
+            val primary = primaryFestivalColumn(items.first(), today)
+            festivalBanner.addView(primary, LinearLayout.LayoutParams(-2, -2))
+            val rest = items.drop(1).chunked(ROWS_PER_COLUMN)
+            if (rest.isNotEmpty()) {
+                primary.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                val rowPx = dpf(LayoutBudget.BANNER_RIGHT_DP - LayoutBudget.SAFE_SIDE_DP)
+                val colPx = ((rowPx - primary.measuredWidth) / rest.size - gap).coerceAtLeast(dp(80))
+                for (chunk in rest) {
+                    val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+                    for (item in chunk) col.addView(festivalRow(item, today, colPx))
+                    festivalBanner.addView(col, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = gap })
+                }
             }
-            festivalName.setTextColor(Palette.text)
-            festivalDate.text = banner.dateLine
-            val note = banner.indiaLine ?: banner.observedLine // the India date differs, or a weekend holiday is observed on another day
-            festivalIndia.text = note.orEmpty()
-            festivalIndia.visibility = if (note != null) View.VISIBLE else View.GONE
             festivalBanner.visibility = View.VISIBLE
         }
         val enabled = prefs.getBoolean(PREF_FESTIVAL_WP, true)
@@ -1455,6 +1487,8 @@ class MainActivity : Activity() {
             prefs.edit().putBoolean(PREF_IDLE, on).apply()
             idleTracker.enabled = on
         }
+        items += PanelItem.Header("SECOND CLOCK")
+        items += PanelItem.Option("City: ${secondCity().name}", OptionKind.ACTION, onSelect = { chooseSecondCity() })
         items += PanelItem.Header("US HOLIDAYS")
         items += PanelItem.Option("US holidays", OptionKind.SWITCH, { prefs.getBoolean(PREF_US_HOLIDAYS, true) }) {
             prefs.edit().putBoolean(PREF_US_HOLIDAYS, !prefs.getBoolean(PREF_US_HOLIDAYS, true)).apply()
@@ -1466,6 +1500,30 @@ class MainActivity : Activity() {
             updateFestival()
         }
         openPanel("Wallpaper", items, returnKey = "quick:Wallpaper")
+    }
+
+    private fun secondCity(): City = WorldCities.resolve(prefs.getString(PREF_SECOND_CITY, null))
+
+    /** The city's own zone drives the clock, so daylight saving changes on both sides are handled by the zone rules. */
+    private fun applySecondCity() {
+        val city = secondCity()
+        secondCityName.text = city.name
+        secondCityClock.timeZone = city.zone
+    }
+
+    /** City list for the second clock, by region. Selecting applies at once; BACK closes the panel. */
+    private fun chooseSecondCity() {
+        val items = ArrayList<PanelItem>()
+        for (region in WorldCities.REGIONS) {
+            items += PanelItem.Header(region)
+            for (c in WorldCities.ALL.filter { it.region == region }) {
+                items += PanelItem.Option(c.name, OptionKind.RADIO, { secondCity().id == c.id }) {
+                    prefs.edit().putString(PREF_SECOND_CITY, c.id).apply()
+                    applySecondCity()
+                }
+            }
+        }
+        openPanel("Second clock", items, returnKey = "quick:Wallpaper")
     }
 
     private fun setDockStyle(style: DockStyle) {
