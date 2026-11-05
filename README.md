@@ -4,6 +4,7 @@ A lightweight, macOS-inspired home screen for Android TV / Google TV. It replace
 
 ## Features
 - A macOS-style dock with squircle app icons, magnification and lift, and a collapsible menu (Inputs, Settings, Wallpaper, All apps).
+- Choose dock apps from All apps (long-press OK, or Menu) and reorder them with Move: slide the app with left and right, OK places it, Back cancels.
 - A Launchpad-style All apps grid.
 - Glass widget cards for the clock (with a second time zone), weather (Open-Meteo), air quality (US AQI) and an optional pollen forecast (Google Pollen API).
 - A centered quote that rotates every 5 minutes from about 680 sourced public-domain and Wikiquote-verified quotes, with day and evening sets.

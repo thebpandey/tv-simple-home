@@ -41,3 +41,24 @@ object Favorites {
     fun deserialize(raw: String?): List<String>? =
         raw?.let { r -> r.split('\n').filter { it.isNotBlank() } }
 }
+
+/**
+ * One in-progress "Move" of a dock app: LEFT/RIGHT slide it one slot at a time, OK keeps [order], BACK goes back to [original].
+ * Nothing is saved until the caller commits, so cancelling (or the launcher stopping mid-move) can never leave a half-moved dock.
+ */
+class FavoriteMove(val pkg: String, val original: List<String>) {
+    var order: List<String> = original
+        private set
+
+    val index: Int get() = order.indexOf(pkg)
+
+    /** Returns the (from, to) slots when the app moved, or null at the dock's edge. */
+    fun step(left: Boolean): Pair<Int, Int>? {
+        val from = index
+        order = if (left) Favorites.moveLeft(order, pkg) else Favorites.moveRight(order, pkg)
+        val to = index
+        return if (to == from) null else from to to
+    }
+
+    val changed: Boolean get() = order != original
+}

@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FavoritesTest {
@@ -101,5 +102,43 @@ class FavoritesTest {
     @Test
     fun `corrupt blank lines in storage are ignored instead of producing blank tiles`() {
         assertEquals(listOf("a", "b"), Favorites.deserialize("a\n\n  \nb\n"))
+    }
+}
+
+class FavoriteMoveTest {
+    private val dock = listOf("netflix", "youtube", "prime", "stremio")
+
+    @Test
+    fun `sliding an app from the end to the front takes one key press per slot, not one panel trip per slot`() {
+        val move = FavoriteMove("stremio", dock)
+        repeat(3) { move.step(left = true) }
+        assertEquals(listOf("stremio", "netflix", "youtube", "prime"), move.order)
+        assertEquals(0, move.index)
+    }
+
+    @Test
+    fun `pressing past the dock edge does nothing so the app cannot wrap to the far end`() {
+        val move = FavoriteMove("netflix", dock)
+        assertNull(move.step(left = true))
+        assertEquals(dock, move.order)
+        val last = FavoriteMove("stremio", dock)
+        assertNull(last.step(left = false))
+    }
+
+    @Test
+    fun `each step reports the slots it swapped so the dock can move just those two tiles`() {
+        val move = FavoriteMove("youtube", dock)
+        assertEquals(1 to 2, move.step(left = false))
+        assertEquals(2 to 1, move.step(left = true))
+    }
+
+    @Test
+    fun `cancel point is the order before the move even after several steps, so Back fully undoes it`() {
+        val move = FavoriteMove("prime", dock)
+        move.step(left = true); move.step(left = true)
+        assertEquals(dock, move.original)
+        assertTrue(move.changed)
+        move.step(left = false); move.step(left = false)
+        assertFalse("moving back to the start counts as no change", move.changed)
     }
 }

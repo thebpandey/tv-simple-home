@@ -80,6 +80,7 @@ class MainActivity : Activity() {
     private var apps: List<AppEntry> = emptyList()
     private var favorites: List<String> = emptyList()
     private var showingAll = false
+    private var move: FavoriteMove? = null // a dock app being slid with LEFT/RIGHT (see [startMove])
 
     private lateinit var favRow: LinearLayout
     private lateinit var favScroller: RowScroller
@@ -729,6 +730,7 @@ class MainActivity : Activity() {
     private fun refresh() {
         val focusKey = (currentFocus as? FocusItem)?.key
         val weatherWasFocused = currentFocus === weatherWidget
+        move = null // the rebuild below restores the saved order
         apps = scanApps()
         val saved = Favorites.deserialize(prefs.getString(PREF_FAVORITES, null))
         favorites = Favorites.resolve(saved, apps.map { it.pkg }.toSet())
@@ -1080,7 +1082,7 @@ class MainActivity : Activity() {
 
     private fun checkIdle() {
         val now = android.os.SystemClock.uptimeMillis()
-        val homeActive = !showingAll && !panel.isOpen
+        val homeActive = !showingAll && !panel.isOpen && move == null
         if (homeActive && idleTracker.tick(now)) {
             for (v in fadeTargets()) v.animate().alpha(0f).setDuration(600).start()
             creditView.animate().alpha(0f).setDuration(600).start()
@@ -1116,6 +1118,7 @@ class MainActivity : Activity() {
         } else if (event.action == KeyEvent.ACTION_UP && swallowedKeys.remove(event.keyCode)) {
             return true
         }
+        if (move != null) return moveKey(event)
         return super.dispatchKeyEvent(event)
     }
 
@@ -1491,12 +1494,53 @@ class MainActivity : Activity() {
             app.label,
             listOf(
                 PanelItem.Header("FAVORITE"),
-                PanelItem.Option("Move left", OptionKind.ACTION, onSelect = { closeThen { saveFavorites(Favorites.moveLeft(favorites, app.pkg), key) } }),
-                PanelItem.Option("Move right", OptionKind.ACTION, onSelect = { closeThen { saveFavorites(Favorites.moveRight(favorites, app.pkg), key) } }),
+                PanelItem.Option("Move", OptionKind.ACTION, onSelect = { closeThen { startMove(app) } }),
                 PanelItem.Option("Remove from favorites", OptionKind.ACTION, onSelect = { closeThen { saveFavorites(Favorites.remove(favorites, app.pkg), null) } }),
             ),
             returnKey = key,
         )
+    }
+
+    // ---------- Move mode: LEFT/RIGHT slide the app, OK places it, BACK puts it back ----------
+
+    private fun favTile(pkg: String): Tile? =
+        (0 until favRow.childCount).map { favRow.getChildAt(it) }.firstOrNull { (it as? Tile)?.key == "fav:$pkg" } as? Tile
+
+    private fun startMove(app: AppEntry) {
+        if (menuExpanded) setMenuExpanded(false, animate = false)
+        val tile = favTile(app.pkg) ?: return
+        move = FavoriteMove(app.pkg, favorites)
+        tile.bind(tile.key, "\u2039  ${app.label}  \u203A") // arrows on the label say LEFT/RIGHT now move this app
+        tile.requestFocus()
+        tile.showLabel(true)
+        toast("Left and right move ${app.label}. OK places it, Back cancels.")
+    }
+
+    /** Every key is consumed while moving (DOWN and UP), so nothing launches, opens or navigates mid-move. */
+    private fun moveKey(event: KeyEvent): Boolean {
+        val m = move ?: return false
+        if (event.action != KeyEvent.ACTION_DOWN) return true
+        when (event.keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                val (from, to) = m.step(left = event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT) ?: return true
+                // Move the neighbour, not the focused tile: detaching the focused view would hand focus elsewhere mid-move.
+                val neighbour = favRow.getChildAt(to)
+                favRow.removeViewAt(to)
+                favRow.addView(neighbour, from)
+                magnify(to)
+            }
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> endMove(keep = true)
+            KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> endMove(keep = false)
+        }
+        return true
+    }
+
+    private fun endMove(keep: Boolean) {
+        val m = move ?: return
+        move = null
+        val key = "fav:${m.pkg}"
+        if (keep && m.changed) saveFavorites(m.order, key)
+        else { rebuildHome(); restoreFocus(key) } // favorites was never changed, so this restores the original order and label
     }
 
     private fun editAllAppsEntry(app: AppEntry) {
