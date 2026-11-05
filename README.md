@@ -11,7 +11,8 @@ A lightweight, macOS-inspired home screen for Android TV / Google TV. It replace
 - Wallpapers:
   - animated procedural scenes with parallax;
   - your own photos;
-  - painted stills, auto-rotating every 30 minutes and matched to day or night by local sunrise and sunset, calculated offline with the NOAA algorithm.
+  - painted stills (up to 12 designs per theme for day and for night), auto-rotating every 30 minutes and matched to day or night by local sunrise and sunset, calculated offline with the NOAA algorithm.
+  - a small shuffle button in the top bar, between the clock and the weather, skips to the next wallpaper in the rotation.
 - Festival and US federal holiday banners from a week ahead, with countdowns and themed wallpapers; festivals that fall close together are shown side by side.
 - Idle mode that fades the UI to show the wallpaper.
 - Built with framework Views only (no AndroidX, Compose or Leanback), and runs in about 40–50 MB.

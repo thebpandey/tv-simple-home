@@ -8,7 +8,7 @@ import java.io.File
 import java.io.IOException
 
 /**
- * One validated entry of scenes.json: a painted 1920x1080 still of [theme], design number [index] (1..4), for the day or night sun
+ * One validated entry of scenes.json: a painted 1920x1080 still of [theme], design number [index] (1..[StillManifest.MAX_INDEX]), for the day or night sun
  * state. [luma] is the brightness of the quote band (0..255) when known.
  */
 data class StillEntry(val id: String, val file: String, val theme: String, val night: Boolean, val index: Int, val luma: Int?)
@@ -22,7 +22,7 @@ sealed interface StillManifestResult {
 object StillManifest {
     const val MAX_ENTRIES = 256
     const val MAX_BYTES = 128 * 1024L
-    const val MAX_INDEX = 4
+    const val MAX_INDEX = 12 // designs per theme and sun state; more designs = more variety in the 30-minute rotation
 
     val NATURE_THEMES = listOf("forest", "jungle", "beach", "mountains", "snowpeaks", "autumn")
     val FESTIVAL_THEMES = listOf(

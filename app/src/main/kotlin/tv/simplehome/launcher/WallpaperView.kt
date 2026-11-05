@@ -54,6 +54,8 @@ class WallpaperView(context: Context) : View(context) {
      */
     var onToneChanged: ((Int?, Legibility.Needs?) -> Unit)? = null
     private var festivalKey: Int? = null
+    private val MAX_SHUFFLE_STEPS = 32
+    private var slotOffset = 0L // manual shuffles: each one steps the rotation one design ahead of the clock
     private var festivalTheme: String? = null
     private var dayVariant = false
     /** Light or dark UI (decides the scrim colour); differs from [dayVariant] when an image's brightness, not the sun, picks the UI mode. */
@@ -147,6 +149,23 @@ class WallpaperView(context: Context) : View(context) {
         if (started && !WallpaperSchedule.wantsFrames(mode, animatorScale)) apply()
     }
 
+    /**
+     * Steps the rotation to its next wallpaper now (the 30-minute schedule carries on from there). Returns false when the mode does not
+     * rotate (a pinned scene or Off), so the caller can say why nothing changed.
+     */
+    fun shuffle(): Boolean {
+        if (mode == WallpaperMode.Off || mode is WallpaperMode.Pinned) return false
+        // Each rotation cycle is reshuffled, so the next slot can repeat the current design at a cycle boundary: step until it differs
+        // (bounded, since a pool of one can never change).
+        val now = System.currentTimeMillis() / WallpaperSchedule.PERIOD_MS
+        val before = computeTargetKey(now + slotOffset)
+        var steps = 0
+        do { slotOffset++; steps++ } while (steps < MAX_SHUFFLE_STEPS && computeTargetKey(now + slotOffset) == before)
+        version++
+        if (started && !WallpaperSchedule.wantsFrames(mode, animatorScale)) apply()
+        return true
+    }
+
     fun setUiDay(day: Boolean) {
         if (uiDay == day) return
         uiDay = day
@@ -179,7 +198,7 @@ class WallpaperView(context: Context) : View(context) {
     }
 
     private fun targetKey(): Int? {
-        val slot = System.currentTimeMillis() / WallpaperSchedule.PERIOD_MS
+        val slot = System.currentTimeMillis() / WallpaperSchedule.PERIOD_MS + slotOffset
         if (slot == memoSlot && version == memoVersion) return memoKey
         memoSlot = slot
         memoVersion = version

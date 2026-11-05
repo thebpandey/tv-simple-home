@@ -141,6 +141,7 @@ class MainActivity : Activity() {
         }
     }
     private lateinit var weatherWidget: WeatherWidget
+    private lateinit var shuffleButton: ShuffleButton
     private var weatherExecutor: ExecutorService? = null
     private var weatherGen = 0 // bumped when the place changes so in-flight fetches for the old place are discarded
     private val weatherTick = object : Runnable {
@@ -473,7 +474,13 @@ class MainActivity : Activity() {
         applySecondCity()
         info.addView(delhi)
         bar.addView(info)
-        bar.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+        // The free space between the clock group and the weather holds the shuffle button, centred, so it can never overlap either.
+        shuffleButton = ShuffleButton(this).apply { setOnClickListener { shuffleWallpaper() } }
+        themed.add { shuffleButton.invalidate() }
+        bar.addView(FrameLayout(this).apply {
+            clipChildren = false
+            addView(shuffleButton, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
+        }, LinearLayout.LayoutParams(0, -1, 1f))
         weatherWidget = WeatherWidget(this).apply {
             setOnClickListener { openWeatherPanel() }
             isFocusedByDefault = false // reachable only by an explicit UP from the dock
@@ -1045,15 +1052,22 @@ class MainActivity : Activity() {
         val f = currentFocus
         val inDock = f === menuButton || (f is Tile && (f.parent === favRow || f.parent === pillRow))
         when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> if (inDock) { weatherWidget.takeIf { it.isShown }?.requestFocus(); return true }
+            // Top bar: [shuffle] [weather]. UP from the dock lands on the weather (the shuffle button while the weather is hidden).
+            KeyEvent.KEYCODE_DPAD_UP -> if (inDock) { (weatherWidget.takeIf { it.isShown } ?: shuffleButton).requestFocus(); return true }
+                else if (f === shuffleButton || f === weatherWidget) return true
+            KeyEvent.KEYCODE_DPAD_LEFT -> if (f === weatherWidget) { shuffleButton.requestFocus(); return true }
+                else if (f === shuffleButton) return true
+                else if (inDock) return dockLeftRight(f, DockKey.LEFT)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> if (f === shuffleButton) { weatherWidget.takeIf { it.isShown }?.requestFocus(); return true }
+                else if (f === weatherWidget) return true
+                else if (inDock) return dockLeftRight(f, DockKey.RIGHT)
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (f === weatherWidget) {
+                if (f === weatherWidget || f === shuffleButton) {
                     (lastDockFocus?.takeIf { it.isAttachedToWindow && it.isShown } ?: favRow.getChildAt(0) ?: menuButton).requestFocus()
                     return true
                 }
                 if (inDock) return true
             }
-            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> if (inDock) return dockLeftRight(f, if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) DockKey.LEFT else DockKey.RIGHT)
         }
         return false
     }
@@ -1110,7 +1124,7 @@ class MainActivity : Activity() {
 
     // ---------- Idle mode ----------
 
-    private fun fadeTargets() = listOf(dock, weatherWidget, festivalBanner, delhiRow)
+    private fun fadeTargets() = listOf(dock, weatherWidget, shuffleButton, festivalBanner, delhiRow)
 
     private fun checkIdle() {
         val now = android.os.SystemClock.uptimeMillis()
@@ -1524,6 +1538,10 @@ class MainActivity : Activity() {
             }
         }
         openPanel("Second clock", items, returnKey = "quick:Wallpaper")
+    }
+
+    private fun shuffleWallpaper() {
+        if (!wallpaper.shuffle()) toast("This wallpaper is pinned. Pick an auto-rotate option in Wallpaper to shuffle.")
     }
 
     private fun setDockStyle(style: DockStyle) {

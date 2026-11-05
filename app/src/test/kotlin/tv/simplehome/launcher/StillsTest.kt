@@ -55,12 +55,12 @@ class StillsTest {
     }
 
     @Test
-    fun `the design index must be an integer from 1 to 4`() {
+    fun `the design index must be an integer from 1 to 12 so a festival can rotate through up to 12 designs per sun state`() {
         val r = ok(StillManifest.parse(v2m(
-            v2("a-0", "a0.jpg", index = "0"), v2("a-5", "a5.jpg", index = "5"), v2("a-s", "as.jpg", index = "\"2\""), v2("a-f", "af.jpg", index = "2.5"),
-            v2("a-1", "a1.jpg", index = "1"), v2("a-4", "a4.jpg", index = "4"),
+            v2("a-0", "a0.jpg", index = "0"), v2("a-13", "a13.jpg", index = "13"), v2("a-s", "as.jpg", index = "\"2\""), v2("a-f", "af.jpg", index = "2.5"),
+            v2("a-1", "a1.jpg", index = "1"), v2("a-4", "a4.jpg", index = "4"), v2("a-8", "a8.jpg", index = "8"), v2("a-12", "a12.jpg", index = "12"),
         )))
-        assertEquals(listOf(1, 4), r.stills.map { it.index })
+        assertEquals(listOf(1, 4, 8, 12), r.stills.map { it.index })
     }
 
     @Test
