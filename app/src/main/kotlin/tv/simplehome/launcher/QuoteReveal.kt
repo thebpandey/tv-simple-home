@@ -53,7 +53,6 @@ object QuoteReveal {
  * Vertical quote block (quote text, then author) that can write itself in or wipe itself out left to right with a soft pen edge.
  * Outside an animation it draws normally, with no offscreen layer.
  */
-@android.annotation.SuppressLint("ViewConstructor") // built in code only, never inflated from XML
 class QuoteRevealLayout(context: Context, private val text: TextView, private val author: TextView) : LinearLayout(context) {
     private enum class Phase { SHOWN, WRITING, ERASING, HIDDEN }
 

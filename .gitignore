@@ -6,3 +6,6 @@ local.properties
 keystore.properties
 .idea/
 *.key
+
+# Session logs written by the Factory hooks; local only, never committed or published.
+_sessions/

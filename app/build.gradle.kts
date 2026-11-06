@@ -50,7 +50,10 @@ android {
 
     buildFeatures { buildConfig = true }
 
-    lint { abortOnError = true }
+    lint {
+        abortOnError = true
+        lintConfig = file("lint.xml") // project-wide decisions, each with its reason
+    }
 }
 
 dependencies {

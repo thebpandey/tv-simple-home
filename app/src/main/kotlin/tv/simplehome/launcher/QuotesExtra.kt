@@ -14,10 +14,7 @@ internal object QuotesExtra {
         Quote("Here shall no end be hindered, no hope marred, no loss be feared: faith, yea, a little faith, shall save thee from the anguish of thy dread.", "Bhagavad Gita", Theme.CONFIDENCE, "Song Celestial (Arnold trans.), Ch. II"), // GUTENBERG#2388
         Quote("Better thine own work is, though done with fault, than doing others' work, ev'n excellently.", "Bhagavad Gita", Theme.CONFIDENCE, "Song Celestial (Arnold trans.), Ch. XVIII"), // GUTENBERG#2388
         Quote("Put all imaginations away, and stand fast in that which you are.", "Kabir", Theme.CONFIDENCE, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
-        Quote("Tiny grass, your steps are small, but you possess the earth under your tread.", "Rabindranath Tagore", Theme.CONFIDENCE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("The stars are not afraid to appear like fireflies.", "Rabindranath Tagore", Theme.CONFIDENCE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("From now there shall be no fear left for me in this world, and thou shalt be victorious in all my strife.", "Rabindranath Tagore", Theme.CONFIDENCE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("I know that my heart would open like a flower; that my life has filled itself at a hidden fountain.", "Rabindranath Tagore", Theme.CONFIDENCE, "Fruit-Gathering (1916)"), // GUTENBERG#6522
         Quote("Stand as a rock; you are indestructible.", "Swami Vivekananda", Theme.CONFIDENCE, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("All the powers in the universe are already ours. It is we who have put our hands before our eyes and cry that it is dark.", "Swami Vivekananda", Theme.CONFIDENCE, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("Be a hero. Always say, \"I have no fear.\" Tell this to everyone, \"Have no fear.\"", "Swami Vivekananda", Theme.CONFIDENCE, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
@@ -41,17 +38,8 @@ internal object QuotesExtra {
         Quote("Whoso performeth, diligent, content, the work allotted him, whate'er it be, lays hold of perfectness!", "Bhagavad Gita", Theme.INSPIRATION, "Song Celestial (Arnold trans.), Ch. XVIII"), // GUTENBERG#2388
         Quote("Hope for Him whilst you live, know whilst you live, understand whilst you live: for in life deliverance abides.", "Kabir", Theme.INSPIRATION, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
         Quote("I cannot choose the best. The best chooses me.", "Rabindranath Tagore", Theme.INSPIRATION, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Never be afraid of the moments—thus sings the voice of the everlasting.", "Rabindranath Tagore", Theme.INSPIRATION, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Wayside grass, love the star, then your dreams will come out in flowers.", "Rabindranath Tagore", Theme.INSPIRATION, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Give me the strength to raise my mind high above daily trifles.", "Rabindranath Tagore", Theme.INSPIRATION, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("When old words die out on the tongue, new melodies break forth from the heart; and where the old tracks are lost, new country is revealed with its wonders.", "Rabindranath Tagore", Theme.INSPIRATION, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Come out of thy meditations and leave aside thy flowers and incense! What harm is there if thy clothes become tattered and stained?", "Rabindranath Tagore", Theme.INSPIRATION, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("He is there where the tiller is tilling the hard ground and where the pathmaker is breaking stones.", "Rabindranath Tagore", Theme.INSPIRATION, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Kindle the lamp of love with thy life.", "Rabindranath Tagore", Theme.INSPIRATION, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Be ready to launch forth, my heart! and let those linger who must.", "Rabindranath Tagore", Theme.INSPIRATION, "Fruit-Gathering (1916)"), // GUTENBERG#6522
-        Quote("Burst your sheath, my heart, and come forth!", "Rabindranath Tagore", Theme.INSPIRATION, "Fruit-Gathering (1916)"), // GUTENBERG#6522
-        Quote("He does not stay to count his gain or to mourn his loss; his heart beats the drum for his march.", "Rabindranath Tagore", Theme.INSPIRATION, "Fruit-Gathering (1916)"), // GUTENBERG#6522
-        Quote("The desire of the bud is for the night and dew, but the blown flower cries for the freedom of light.", "Rabindranath Tagore", Theme.INSPIRATION, "Fruit-Gathering (1916)"), // GUTENBERG#6522
         Quote("Arise, awake and stop not till the goal is reached.", "Swami Vivekananda", Theme.INSPIRATION, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("Take up an idea, devote yourself to it, struggle on in patience, and the sun will rise for you.", "Swami Vivekananda", Theme.INSPIRATION, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("Give me few men and women who are pure and selfless and I shall shake the world.", "Swami Vivekananda", Theme.INSPIRATION, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
@@ -91,12 +79,8 @@ internal object QuotesExtra {
         Quote("Humbleness, uprightness, heed to injure nought which lives, truthfulness, slowness unto wrath.", "Bhagavad Gita", Theme.INTEGRITY, "Song Celestial (Arnold trans.), Ch. XVI"), // GUTENBERG#2388
         Quote("He who acts free from self-seeking, humble, resolute, steadfast, in good or evil hap the same, content to do aright.", "Bhagavad Gita", Theme.INTEGRITY, "Song Celestial (Arnold trans.), Ch. XVIII"), // GUTENBERG#2388
         Quote("I speak truth, for I have accepted truth in life; I am now attached to truth, I have swept all tinsel away.", "Kabir", Theme.INTEGRITY, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
-        Quote("Death and decay cast over its face momentary shadows and pass on; they leave no marks of their steps, and truth remains fresh and young.", "Rabindranath Tagore", Theme.INTEGRITY, "Sadhana (1913)"), // GUTENBERG#6842
         Quote("To be outspoken is easy when you do not wait to speak the complete truth.", "Rabindranath Tagore", Theme.INTEGRITY, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("If you shut your door to all errors truth will be shut out.", "Rabindranath Tagore", Theme.INTEGRITY, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("I shall ever try to keep all untruths out from my thoughts, knowing that thou art that truth which has kindled the light of reason in my mind.", "Rabindranath Tagore", Theme.INTEGRITY, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("I shall ever try to drive all evils away from my heart and keep my love in flower.", "Rabindranath Tagore", Theme.INTEGRITY, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Only let me make my life simple and straight, like a flute of reed for thee to fill with music.", "Rabindranath Tagore", Theme.INTEGRITY, "Gitanjali (1912)"), // GUTENBERG#7164
         Quote("What the world wants is character. The world is in need of those whose life is one burning love, selfless.", "Swami Vivekananda", Theme.INTEGRITY, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("Watch people do their most common actions; these are indeed the things that will tell you the real character of a great person.", "Swami Vivekananda", Theme.INTEGRITY, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("Truth never damages a cause that is just.", "Mahatma Gandhi", Theme.INTEGRITY, "Harijan, 9 December 1939, in The Collected Works of Mahatma Gandhi, Vol. 70, p. 40."), // WIKIQUOTE:Mahatma Gandhi
@@ -113,19 +97,8 @@ internal object QuotesExtra {
         Quote("Wheresoever thou mayest live, there it is in thy power to live well and happy.", "Marcus Aurelius", Theme.POSITIVITY, "Meditations (Casaubon trans.)"), // GUTENBERG#2680
         Quote("No heart that holds one right desire treadeth the road of loss!", "Bhagavad Gita", Theme.POSITIVITY, "Song Celestial (Arnold trans.), Ch. VI"), // GUTENBERG#2388
         Quote("The wonder is not that there should be obstacles and sufferings in this world, but that there should be law and order, beauty and joy, goodness and love.", "Rabindranath Tagore", Theme.POSITIVITY, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("His own mornings are new surprises to God.", "Rabindranath Tagore", Theme.POSITIVITY, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Every child comes with the message that God is not yet discouraged of man.", "Rabindranath Tagore", Theme.POSITIVITY, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Night's darkness is a bag that bursts with the gold of the dawn.", "Rabindranath Tagore", Theme.POSITIVITY, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Dark clouds become heaven's flowers when kissed by light.", "Rabindranath Tagore", Theme.POSITIVITY, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("The world has opened its heart of light in the morning. Come out, my heart, with thy love to meet it.", "Rabindranath Tagore", Theme.POSITIVITY, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("The morning will surely come, the darkness will vanish, and thy voice pour down in golden streams breaking through the sky.", "Rabindranath Tagore", Theme.POSITIVITY, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("There comes the morning with the golden basket in her right hand bearing the wreath of beauty, silently to crown the earth.", "Rabindranath Tagore", Theme.POSITIVITY, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("In the morning I woke up and found my garden full with wonders of flowers.", "Rabindranath Tagore", Theme.POSITIVITY, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("The morning light has flooded my eyes.", "Rabindranath Tagore", Theme.POSITIVITY, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Let my joy in life blaze up in fire.", "Rabindranath Tagore", Theme.POSITIVITY, "Fruit-Gathering (1916)"), // GUTENBERG#6522
-        Quote("Bare your forehead, waiting for the first blessing of light, and sing with the bird of the morning in glad faith.", "Rabindranath Tagore", Theme.POSITIVITY, "Fruit-Gathering (1916)"), // GUTENBERG#6522
-        Quote("I will meet one day the Life within me, the joy that hides in my life, though the days perplex my path with their idle dust.", "Rabindranath Tagore", Theme.POSITIVITY, "Fruit-Gathering (1916)"), // GUTENBERG#6522
-        Quote("Open the doors, make room for the morning light.", "Rabindranath Tagore", Theme.POSITIVITY, "The Gardener (1913)"), // GUTENBERG#6686
         Quote("It is the cheerful mind that is persevering. It is the strong mind that hews its way through a thousand difficulties.", "Swami Vivekananda", Theme.POSITIVITY, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("The past was great no doubt, but I sincerely believe that the future will be more glorious still.", "Swami Vivekananda", Theme.POSITIVITY, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("You must not lose faith in humanity. Humanity is an ocean; if a few drops of the ocean are dirty, the ocean does not become dirty.", "Mahatma Gandhi", Theme.POSITIVITY, "Harijan, 10 August 1947, in The Collected Works of Mahatma Gandhi, Vol. 89, p. 137."), // WIKIQUOTE:Mahatma Gandhi
@@ -146,12 +119,8 @@ internal object QuotesExtra {
         Quote("He who will be master of himself shall win it, if he stoutly strive thereto.", "Bhagavad Gita", Theme.STRENGTH, "Song Celestial (Arnold trans.), Ch. VI"), // GUTENBERG#2388
         Quote("Yet may it grow restrained by habit, Prince! By wont of self-command.", "Bhagavad Gita", Theme.STRENGTH, "Song Celestial (Arnold trans.), Ch. VI"), // GUTENBERG#2388
         Quote("Man's freedom is never in being saved troubles, but it is the freedom to take trouble for his own good, to make the trouble an element in his joy.", "Rabindranath Tagore", Theme.STRENGTH, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("There is an impetus of joy in the child which sustains it in its seemingly impossible task.", "Rabindranath Tagore", Theme.STRENGTH, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("The waterfall sings, \"I find my song, when I find my freedom.\"", "Rabindranath Tagore", Theme.STRENGTH, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Not hammerstrokes, but dance of the water sings the pebbles into perfection.", "Rabindranath Tagore", Theme.STRENGTH, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Let your music, like a sword, pierce the noise of the market to its heart.", "Rabindranath Tagore", Theme.STRENGTH, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Give me the strength lightly to bear my joys and sorrows.", "Rabindranath Tagore", Theme.STRENGTH, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Let hard blows of trouble strike fire into my life.", "Rabindranath Tagore", Theme.STRENGTH, "Fruit-Gathering (1916)"), // GUTENBERG#6522
         Quote("This world is the great gymnasium where we come to make ourselves strong.", "Swami Vivekananda", Theme.STRENGTH, "Call to the Nation"), // WIKIQUOTE:Swami Vivekananda
         Quote("The remedy for weakness is not brooding over weakness, but thinking of strength. Teach men of strength that is already within them.", "Swami Vivekananda", Theme.STRENGTH, "Call to the Nation"), // WIKIQUOTE:Swami Vivekananda
         Quote("Strength is Life, Weakness is death.", "Swami Vivekananda", Theme.STRENGTH, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
@@ -184,19 +153,9 @@ internal object QuotesExtra {
         Quote("Equanimity, and charity which spieth no man's faults; and tenderness towards all that suffer; a contented heart.", "Bhagavad Gita", Theme.VIRTUE, "Song Celestial (Arnold trans.), Ch. XVI"), // GUTENBERG#2388
         Quote("Humbleness, truthfulness, and harmlessness, patience and honour, reverence for the wise, purity, constancy, control of self.", "Bhagavad Gita", Theme.VIRTUE, "Song Celestial (Arnold trans.), Ch. XIII"), // GUTENBERG#2388
         Quote("Who hateth nought of all which lives, living himself benign, compassionate, from arrogance exempt.", "Bhagavad Gita", Theme.VIRTUE, "Song Celestial (Arnold trans.), Ch. XII"), // GUTENBERG#2388
-        Quote("Essentially man is not a slave either of himself or of the world; but he is a lover.", "Rabindranath Tagore", Theme.VIRTUE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("Our great Revealers are they who make manifest the true meaning of the soul by giving up self for the love of mankind.", "Rabindranath Tagore", Theme.VIRTUE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("When a man loves, giving becomes a matter of joy to him, like the tree's surrender of the ripe fruit.", "Rabindranath Tagore", Theme.VIRTUE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("Pleasure is for one's own self, but goodness is concerned with the happiness of all humanity and for all time.", "Rabindranath Tagore", Theme.VIRTUE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("Our highest joy is in the losing of our egoistic self and in the uniting with others.", "Rabindranath Tagore", Theme.VIRTUE, "Sadhana (1913)"), // GUTENBERG#6842
         Quote("We come nearest to the great when we are great in humility.", "Rabindranath Tagore", Theme.VIRTUE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Thank the flame for its light, but do not forget the lampholder standing in the shade with constancy of patience.", "Rabindranath Tagore", Theme.VIRTUE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("He who wants to do good knocks at the gate; he who loves finds the gate open.", "Rabindranath Tagore", Theme.VIRTUE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("He who is too busy doing good finds no time to be good.", "Rabindranath Tagore", Theme.VIRTUE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Men are cruel, but Man is kind.", "Rabindranath Tagore", Theme.VIRTUE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Give me the strength never to disown the poor or bend my knees before insolent might.", "Rabindranath Tagore", Theme.VIRTUE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Give me the strength to make my love fruitful in service.", "Rabindranath Tagore", Theme.VIRTUE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Pride can never approach to where thou walkest in the clothes of the humble among the poorest, and lowliest, and lost.", "Rabindranath Tagore", Theme.VIRTUE, "Gitanjali (1912)"), // GUTENBERG#7164
         Quote("Work on with the intrepidity of a lion but at the same time with the tenderness of a flower.", "Swami Vivekananda", Theme.VIRTUE, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("Purity, patience, and perseverance are the three essentials to success and, above all, love.", "Swami Vivekananda", Theme.VIRTUE, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("They alone live who live for others, the rest are more dead than alive.", "Swami Vivekananda", Theme.VIRTUE, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
@@ -243,23 +202,11 @@ internal object QuotesExtra {
         Quote("Never the spirit was born; the spirit shall cease to be never; never was time it was not; End and Beginning are dreams!", "Bhagavad Gita", Theme.WISDOM, "Song Celestial (Arnold trans.), Ch. II"), // GUTENBERG#2388
         Quote("To see one changeless Life in all the Lives.", "Bhagavad Gita", Theme.WISDOM, "Song Celestial (Arnold trans.), Ch. XVIII"), // GUTENBERG#2388
         Quote("The moon shines in my body, but my blind eyes cannot see it: The moon is within me, and so is the sun.", "Kabir", Theme.WISDOM, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
-        Quote("Law is the first step towards freedom, and beauty is the complete liberation which stands on the pedestal of law.", "Rabindranath Tagore", Theme.WISDOM, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("Our will has freedom in order that it may find out that its true course is towards goodness and love.", "Rabindranath Tagore", Theme.WISDOM, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("The animal intelligence knows facts, the human mind has power to apprehend truth.", "Rabindranath Tagore", Theme.WISDOM, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("This discovery of truth is pure joy to man, it is a liberation of his mind.", "Rabindranath Tagore", Theme.WISDOM, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("The emancipation of our physical nature is in attaining health, of our social being in attaining goodness, and of our self in attaining love.", "Rabindranath Tagore", Theme.WISDOM, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("That I exist is a perpetual surprise which is life.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Man is a born child, his power is the power of growth.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Life finds its wealth by the claims of the world, and its worth by the claims of love.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("The small truth has words that are clear; the great truth has great silence.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("A mind all logic is like a knife all blade. It makes the hand bleed that uses it.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("The stream of truth flows through its channels of mistakes.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Let him only see the thorns who has eyes to see the rose.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Life is given to us, we earn it by giving it.", "Rabindranath Tagore", Theme.WISDOM, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("I knew not then that it was so near, that it was mine, and that this perfect sweetness had blossomed in the depth of my own heart.", "Rabindranath Tagore", Theme.WISDOM, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Hidden in the heart of things thou art nourishing seeds into sprouts, buds into blossoms, and ripening flowers into fruitfulness.", "Rabindranath Tagore", Theme.WISDOM, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("The child who is decked with prince's robes and who has jewelled chains round his neck loses all pleasure in his play; his dress hampers him at every step.", "Rabindranath Tagore", Theme.WISDOM, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Baby knows all manner of wise words, though few on earth can understand their meaning.", "Rabindranath Tagore", Theme.WISDOM, "The Crescent Moon (1913)"), // GUTENBERG#6520
         Quote("Truth can be stated in a thousand different ways, yet each one can be true.", "Swami Vivekananda", Theme.WISDOM, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("We reap what we sow. We are the makers of our own fate.", "Swami Vivekananda", Theme.WISDOM, "Pearls of Wisdom"), // WIKIQUOTE:Swami Vivekananda
         Quote("A man is but the product of his thoughts. What he thinks, he becomes.", "Mahatma Gandhi", Theme.WISDOM, "In Ethical Religion, (Madras: S. Ganesan, 1922), [http://hdl.handle.net/2027/mdp.39015002732066?urlappend=%3Bseq=66 p. 62], [https://babel.h"), // WIKIQUOTE:Mahatma Gandhi
@@ -278,18 +225,9 @@ internal object QuotesExtra {
         Quote("The sufficiency of contentment is an enduring and unchanging sufficiency.", "Lao Tzu", Theme.GRATITUDE, "Tao Teh King (Legge trans.)"), // GUTENBERG#216
         Quote("Whatsoever thy seasons bear, shall ever by me be esteemed as happy fruit, and increase.", "Marcus Aurelius", Theme.GRATITUDE, "Meditations (Casaubon trans.)"), // GUTENBERG#2680
         Quote("Bees sip honey from flowers and hum their thanks when they leave.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("The night opens the flowers in secret and allows the day to get thanks.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("God expects answers for the flowers he sends us, not for the sun and the earth.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("I came to your shore as a stranger, I lived in your house as a guest, I leave your door as a friend, my earth.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("My flower of the day dropped its petals forgotten. In the evening it ripens into a golden fruit of memory.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Life has become richer by the love that has been lost.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("The roots below the earth claim no rewards for making the branches fruitful.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Thy infinite gifts come to me only on these very small hands of mine.", "Rabindranath Tagore", Theme.GRATITUDE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Thy gifts to us mortals fulfil all our needs and yet run back to thee undiminished.", "Rabindranath Tagore", Theme.GRATITUDE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Thy centuries follow each other perfecting a small wild flower.", "Rabindranath Tagore", Theme.GRATITUDE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("This frail vessel thou emptiest again and again, and fillest it ever with fresh life.", "Rabindranath Tagore", Theme.GRATITUDE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("At the immortal touch of thy hands my little heart loses its limits in joy and gives birth to utterance ineffable.", "Rabindranath Tagore", Theme.GRATITUDE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Now at the end of youth my life is like a fruit, having nothing to spare, and waiting to offer herself completely with her full burden of sweetness.", "Rabindranath Tagore", Theme.GRATITUDE, "Fruit-Gathering (1916)"), // GUTENBERG#6522
         Quote("It's wonderful to be alive and to walk on earth.", "Thich Nhat Hanh", Theme.GRATITUDE, "Talk at Stonehill College (2002)"), // WIKIQUOTE:Thích Nhất Hạnh
         Quote("You are a miracle, and everything you touch could be a miracle.", "Thich Nhat Hanh", Theme.GRATITUDE, "Episode of the National Public Radio program Speaking of Faith : \"Brother Thay: A Radio Pilgrimage with Thich Nhat Hanh\" (2003)"), // WIKIQUOTE:Thích Nhất Hạnh
         Quote("He is happy when he thinks of the good he has done; he is still more happy when going on the good path.", "Dhammapada", Theme.HAPPINESS, "Dhammapada (Muller trans.)"), // GUTENBERG#2017
@@ -301,16 +239,7 @@ internal object QuotesExtra {
         Quote("Dance, my heart! dance to-day with joy.", "Kabir", Theme.HAPPINESS, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
         Quote("Where there is the response of delight, there is the fullness of joy.", "Kabir", Theme.HAPPINESS, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
         Quote("On this tree is a bird: it dances in the joy of life.", "Kabir", Theme.HAPPINESS, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
-        Quote("Only he has attained the final truth who knows that the whole world is a creation of joy.", "Rabindranath Tagore", Theme.HAPPINESS, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("From joy are born all creatures, by joy they are sustained, towards joy they progress, and into joy they enter.", "Rabindranath Tagore", Theme.HAPPINESS, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("Children have their play on the seashore of worlds.", "Rabindranath Tagore", Theme.HAPPINESS, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("On the seashore of endless worlds is the great meeting of children.", "Rabindranath Tagore", Theme.HAPPINESS, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("My heart is glad within, and the breath of the passing breeze is sweet.", "Rabindranath Tagore", Theme.HAPPINESS, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("All that is harsh and dissonant in my life melts into one sweet harmony.", "Rabindranath Tagore", Theme.HAPPINESS, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Take to your bosom with a smile what is easy and simple and near.", "Rabindranath Tagore", Theme.HAPPINESS, "The Gardener (1913)"), // GUTENBERG#6686
         Quote("Let your life lightly dance on the edges of Time like dew on the tip of a leaf.", "Rabindranath Tagore", Theme.HAPPINESS, "The Gardener (1913)"), // GUTENBERG#6686
-        Quote("Come, my rainy nights with pattering feet; smile, my golden autumn; come, careless April, scattering your kisses abroad.", "Rabindranath Tagore", Theme.HAPPINESS, "The Gardener (1913)"), // GUTENBERG#6686
-        Quote("Child, how happy you are sitting in the dust, playing with a broken twig all the morning.", "Rabindranath Tagore", Theme.HAPPINESS, "The Crescent Moon (1913)"), // GUTENBERG#6520
         Quote("I always knew that someday I would once again feel the grass under my feet and walk in the sunshine as a free man.", "Nelson Mandela", Theme.HAPPINESS, "[[w:Long Walk to Freedom (book);Long Walk to Freedom]] (1995)"), // WIKIQUOTE:Nelson Mandela
         Quote("A happy life consists not in the absence, but in the mastery of hardships.", "Helen Keller", Theme.HAPPINESS, "The Simplest Way to be Happy (1933)"), // WIKIQUOTE:Helen Keller
         Quote("It all comes to this: the simplest way to be happy is to do good.", "Helen Keller", Theme.HAPPINESS, "The Simplest Way to be Happy (1933)"), // WIKIQUOTE:Helen Keller
@@ -327,22 +256,8 @@ internal object QuotesExtra {
         Quote("Listen to me, friend: he understands who loves.", "Kabir", Theme.LOVE, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
         Quote("Where is the need of words, when love has made drunken the heart?", "Kabir", Theme.LOVE, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
         Quote("More than all else do I cherish at heart that love which makes me to live a limitless life in this world.", "Kabir", Theme.LOVE, "Songs of Kabir (Tagore trans., 1915)"), // GUTENBERG#6519
-        Quote("Love is the highest bliss that man can attain to, for through it alone he truly knows that he is more than himself, and that he is at one with the All.", "Rabindranath Tagore", Theme.LOVE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("That only which is done for love is done freely, however much pain it may cause.", "Rabindranath Tagore", Theme.LOVE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("His freedom and fulfilment is in love, which is another name for perfect comprehension.", "Rabindranath Tagore", Theme.LOVE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("You smiled and talked to me of nothing and I felt that for this I had been waiting long.", "Rabindranath Tagore", Theme.LOVE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Once we dreamt that we were strangers. We wake up to find that we were dear to each other.", "Rabindranath Tagore", Theme.LOVE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("This love between you and me is simple as a song.", "Rabindranath Tagore", Theme.LOVE, "The Gardener (1913)"), // GUTENBERG#6686
-        Quote("We both live in the same village, and that is our one piece of joy.", "Rabindranath Tagore", Theme.LOVE, "The Gardener (1913)"), // GUTENBERG#6686
-        Quote("The heart is only for giving away with a tear and a song, my love.", "Rabindranath Tagore", Theme.LOVE, "The Gardener (1913)"), // GUTENBERG#6686
         Quote("Trust love even if it brings sorrow.", "Rabindranath Tagore", Theme.LOVE, "The Gardener (1913)"), // GUTENBERG#6686
-        Quote("I do not love him because he is good, but because he is my little child.", "Rabindranath Tagore", Theme.LOVE, "The Crescent Moon (1913)"), // GUTENBERG#6520
-        Quote("In all my hopes and my loves, in my life, in the life of my mother you have lived.", "Rabindranath Tagore", Theme.LOVE, "The Crescent Moon (1913)"), // GUTENBERG#6520
-        Quote("You were hidden in my heart as its desire, my darling.", "Rabindranath Tagore", Theme.LOVE, "The Crescent Moon (1913)"), // GUTENBERG#6520
-        Quote("He knows that there is room for endless joy in mother's little corner of a heart, and it is sweeter far than liberty to be caught and pressed in her dear arms.", "Rabindranath Tagore", Theme.LOVE, "The Crescent Moon (1913)"), // GUTENBERG#6520
-        Quote("The sky watches over you when you sleep in your mother's arms, and the morning comes tiptoe to your bed and kisses your eyes.", "Rabindranath Tagore", Theme.LOVE, "The Crescent Moon (1913)"), // GUTENBERG#6520
-        Quote("O greedy heart, shall I pluck the world like a fruit from the sky to place it on your little rosy palm?", "Rabindranath Tagore", Theme.LOVE, "The Crescent Moon (1913)"), // GUTENBERG#6520
-        Quote("Heaven's first darling, twin-born with the morning light, you have floated down the stream of the world's life, and at last you have stranded on my heart.", "Rabindranath Tagore", Theme.LOVE, "The Crescent Moon (1913)"), // GUTENBERG#6520
         Quote("Hatred paralyzes life; love releases it. Hatred confuses life; love harmonizes it. Hatred darkens life; love illuminates it.", "Martin Luther King Jr.", Theme.LOVE, "Strength to Love (1963), Antidotes for Fear"), // WIKIQUOTE:Martin Luther King Jr.
         Quote("Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.", "Martin Luther King Jr.", Theme.LOVE, "This passage contains some phrases King later used in \"Where Do We Go From Here?\" (1967) which has a section below."), // WIKIQUOTE:Martin Luther King Jr.
         Quote("There can be no deep disappointment where there is not deep love.", "Martin Luther King Jr.", Theme.LOVE, "{{w;Letter from a Birmingham Jail}} (1963)"), // WIKIQUOTE:Martin Luther King Jr.
@@ -371,17 +286,8 @@ internal object QuotesExtra {
         Quote("Near to renunciation, very near, dwelleth Eternal Peace!", "Bhagavad Gita", Theme.PEACE, "Song Celestial (Arnold trans.), Ch. XII"), // GUTENBERG#2388
         Quote("Who troubleth not his kind, and is not troubled by them; clear of wrath, living too high for gladness, grief, or fear.", "Bhagavad Gita", Theme.PEACE, "Song Celestial (Arnold trans.), Ch. XII"), // GUTENBERG#2388
         Quote("Splendid and clear shines manifest the Truth as if a Sun of Wisdom sprang to shed its beams of dawn.", "Bhagavad Gita", Theme.PEACE, "Song Celestial (Arnold trans.), Ch. V"), // GUTENBERG#2388
-        Quote("Outwardly nature is busy and restless, inwardly she is all silence and peace.", "Rabindranath Tagore", Theme.PEACE, "Sadhana (1913)"), // GUTENBERG#6842
-        Quote("The universal spirit is waiting to crown us with happiness, but our individual spirit would not accept it.", "Rabindranath Tagore", Theme.PEACE, "Sadhana (1913)"), // GUTENBERG#6842
         Quote("Be still, my heart, these great trees are prayers.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Silence will carry your voice like the nest that holds the sleeping birds.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"), // GUTENBERG#6524
         Quote("Sit still my heart, do not raise your dust. Let the world find its way to you.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Let my doing nothing when I have nothing to do become untroubled in its depth of peace like the evening in the seashore when the water is silent.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("I have dipped the vessel of my heart into this silent hour; it has filled with love.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Light in my heart the evening star of rest and then let the night whisper to me of love.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("God's great power is in the gentle breeze, not in the storm.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"), // GUTENBERG#6524
-        Quote("Under thy great sky in solitude and silence, with humble heart shall I stand before thee face to face.", "Rabindranath Tagore", Theme.PEACE, "Gitanjali (1912)"), // GUTENBERG#7164
-        Quote("Is the song of the sea in tune only with the rising waves? Does it not also sing with the waves that fall?", "Rabindranath Tagore", Theme.PEACE, "Fruit-Gathering (1916)"), // GUTENBERG#6522
         Quote("I have always believed that exercise is the key not only to physical health but to peace of mind.", "Nelson Mandela", Theme.PEACE, "[[w:Long Walk to Freedom (book);Long Walk to Freedom]] (1995)"), // WIKIQUOTE:Nelson Mandela
         Quote("If we have no peace, it is because we have forgotten that we belong to each other.", "Mother Teresa", Theme.PEACE, "Mother Teresa Reflects on Working Toward Peace, ([https://legacy.scu.edu/ethics/architects-of-peace/Teresa/essay.html essay, Santa Clara Uni"), // WIKIQUOTE:Mother Teresa
         Quote("I trust, and nothing that happens disturbs my trust.", "Helen Keller", Theme.PEACE, "[[s:Optimism (Keller);Optimism]] (1903)"), // WIKIQUOTE:Helen Keller

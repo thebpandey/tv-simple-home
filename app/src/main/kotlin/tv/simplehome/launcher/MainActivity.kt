@@ -218,7 +218,7 @@ class MainActivity : Activity() {
         if (result.puts.isEmpty() && result.newVersion == (prefs.all[SettingsMigration.KEY_VERSION] as? Int)) return
         val edit = prefs.edit()
         for ((k, v) in result.puts) edit.putString(k, v)
-        edit.putInt(SettingsMigration.KEY_VERSION, result.newVersion).commit()
+        edit.putInt(SettingsMigration.KEY_VERSION, result.newVersion).apply() // in-memory values update at once; the disk write can wait
     }
 
     private fun startWallpaper() {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Every custom view is built in code and never inflated from XML, so the tools-only constructors would be dead code. -->
+    <issue id="ViewConstructor" severity="ignore" />
+    <!-- English-only launcher with no string resources; translatable text would add indirection for no user. -->
+    <issue id="SetTextI18n" severity="ignore" />
+    <!-- The 320x180dp TV banner is drawn once by the system launcher, not on any hot path. -->
+    <issue id="VectorRaster" severity="ignore" />
+    <!-- allowBackup="false" already blocks all backup below Android 12; dataExtractionRules covers 12+. fullBackupContent would be redundant. -->
+    <issue id="DataExtractionRules" severity="ignore" />
+</lint>

@@ -99,7 +99,7 @@ object Quotes {
     // Wording of translated works follows common English translations, so phrasing varies by translator.
 
     // Motivation, inspiration, positivity, strength, resilience, confidence, determination, winning attitude.
-    val DAY: List<Quote> by lazy { CURATED_DAY + QuotesExtra.DAY + QuotesLeaders.DAY }
+    val DAY: List<Quote> by lazy { CURATED_DAY + QuotesExtra.DAY + QuotesLeaders.DAY + QuotesClassics.DAY }
 
     private val CURATED_DAY: List<Quote> = listOf(
         Quote("Waste no more time arguing about what a good man should be. Be one.", "Marcus Aurelius", Theme.MOTIVATION, "Meditations 10.16"),
@@ -290,7 +290,7 @@ object Quotes {
     )
 
     // Peace, meditation, healing, relaxation, self-actualization, bliss, gratitude, happiness.
-    val EVENING: List<Quote> by lazy { CURATED_EVENING + QuotesExtra.EVENING + QuotesLeaders.EVENING }
+    val EVENING: List<Quote> by lazy { CURATED_EVENING + QuotesExtra.EVENING + QuotesLeaders.EVENING + QuotesClassics.EVENING }
 
     private val CURATED_EVENING: List<Quote> = listOf(
         Quote("He who knows he has enough is rich.", "Tao Te Ching", Theme.BLISS, "Tao Te Ching 33"),
@@ -337,13 +337,9 @@ object Quotes {
         Quote("The butterfly counts not months but moments, and has time enough.", "Rabindranath Tagore", Theme.HAPPINESS, "Fireflies (1928)"),
         Quote("Clouds come floating into my life, no longer to carry rain or usher storm, but to add color to my sunset sky.", "Rabindranath Tagore", Theme.GRATITUDE, "Stray Birds (1916)"),
         Quote("Faith is the bird that feels the light and sings when the dawn is still dark.", "Rabindranath Tagore", Theme.HEALING, "Stray Birds (1916)"),
-        Quote("The same stream of life that runs through my veins night and day runs through the world and dances in rhythmic measures.", "Rabindranath Tagore", Theme.BLISS, "Gitanjali 69"),
         Quote("Let life be beautiful like summer flowers and death like autumn leaves.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"),
         Quote("The world speaks to me in pictures, my soul answers in music.", "Rabindranath Tagore", Theme.BLISS, "Stray Birds (1916)"),
         Quote("Trees are the earth's endless effort to speak to the listening heaven.", "Rabindranath Tagore", Theme.PEACE, "Stray Birds (1916)"),
-        Quote("I have had my invitation to this world's festival, and thus my life has been blessed.", "Rabindranath Tagore", Theme.GRATITUDE, "Gitanjali 16"),
-        Quote("Where the mind is without fear and the head is held high; where knowledge is free.", "Rabindranath Tagore", Theme.SELF_ACTUALIZATION, "Gitanjali 35"),
-        Quote("Light, my light, the world-filling light, the eye-kissing light, heart-sweetening light!", "Rabindranath Tagore", Theme.BLISS, "Gitanjali 57"),
         Quote("Mist, like love, plays upon the heart of the hills and brings out surprises of beauty.", "Rabindranath Tagore", Theme.RELAXATION, "Stray Birds (1916)"),
         Quote("Your pain is the breaking of the shell that encloses your understanding.", "Kahlil Gibran", Theme.HEALING, "The Prophet: On Pain"),
         Quote("Your joy is your sorrow unmasked.", "Kahlil Gibran", Theme.HEALING, "The Prophet: On Joy and Sorrow"),

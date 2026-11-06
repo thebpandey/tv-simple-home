@@ -8,7 +8,6 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
-import android.os.Build
 
 /** What a probe render of an icon says about how it must be framed. */
 data class IconAnalysis(val fullBleed: Boolean, val mostlyWhite: Boolean)
@@ -46,7 +45,7 @@ object IconRenderer {
         val c = Canvas(bmp)
         val size = px.toFloat()
         val shape = Squircle.path(0f, 0f, size, size)
-        if (Build.VERSION.SDK_INT >= 26 && d is AdaptiveIconDrawable) {
+        if (d is AdaptiveIconDrawable) { // minSdk 26: adaptive icons always exist
             // The layers are 108dp with the 72dp visible window in the middle: extend the bounds by a quarter each side.
             val pad = (px * 0.25f).toInt()
             d.background?.let { it.setBounds(-pad, -pad, px + pad, px + pad); it.draw(c) }

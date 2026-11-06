@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Used only by WeatherFetcher (Open-Meteo forecast and air quality, Google Pollen). Nothing else touches the network. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -20,6 +21,7 @@
 
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:banner="@drawable/banner"
         android:icon="@drawable/ic_launcher"
         android:label="Home"
@@ -30,10 +32,10 @@
             android:name=".MainActivity"
             android:banner="@drawable/banner"
             android:exported="true"
-            android:label="Home"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:screenOrientation="landscape"
+            tools:ignore="DiscouragedApi"
             android:stateNotNeeded="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
