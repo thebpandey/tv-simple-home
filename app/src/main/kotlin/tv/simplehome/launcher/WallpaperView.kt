@@ -211,17 +211,17 @@ class WallpaperView(context: Context) : View(context) {
         val pick = WallpaperPicker.pick(mode, sources, slot * WallpaperSchedule.PERIOD_MS, festivalKey, photoIsNight, night, natureNight)
         return when (pick) {
             null -> null
-            is Pick.SceneKey -> festivalPaintingKey(pick.key, night, slot) ?: WallpaperSchedule.withDay(pick.key, dayVariant)
+            is Pick.SceneKey -> festivalPaintingKey(pick.key, slot) ?: WallpaperSchedule.withDay(pick.key, dayVariant)
             is Pick.Photo -> WallpaperSchedule.PHOTO_BASE + pick.index
             is Pick.Painting -> WallpaperSchedule.STILL_BASE + natureStills[pick.index]
         }
     }
 
-    /** Inside a festival window the festival's own painted designs rotate (per slot, matching the sun state); none present = procedural scene. */
-    private fun festivalPaintingKey(baseKey: Int, night: Boolean, slot: Long): Int? {
+    /** Inside a festival window all of the festival's painted designs rotate, day and night alike; none present = procedural scene. */
+    private fun festivalPaintingKey(baseKey: Int, slot: Long): Int? {
         val theme = festivalTheme
         if (theme == null || baseKey != festivalKey) return null
-        return StillPools.pick(stillEntries, theme, night, slot)?.let { WallpaperSchedule.STILL_BASE + it }
+        return StillPools.pick(stillEntries, theme, slot)?.let { WallpaperSchedule.STILL_BASE + it }
     }
 
     private fun lumaFor(key: Int): Int? = when {

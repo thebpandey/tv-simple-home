@@ -84,9 +84,12 @@ class StillsTest {
     }
 
     @Test
-    fun `the manifest holds up to 192 designs and no more than 256 entries`() {
-        val all = StillManifest.THEMES.flatMap { t -> listOf("day", "night").flatMap { v -> (1..4).map { i -> v2("$t-$v-$i", "$t-$v-$i.jpg", t, v, "$i") } } }
-        assertEquals(192, ok(StillManifest.parse(v2m(*all.toTypedArray()))).stills.size)
+    fun `the manifest has room for every design slot of every theme, so no painting is silently dropped`() {
+        assertEquals(StillManifest.THEMES.size * 2 * StillManifest.MAX_INDEX, StillManifest.MAX_ENTRIES)
+        val all = StillManifest.THEMES.flatMap { t -> listOf("day", "night").flatMap { v -> (1..StillManifest.MAX_INDEX).map { i -> v2("$t-$v-$i", "$t-$v-$i.jpg", t, v, "$i") } } }
+        val r = ok(StillManifest.parse(v2m(*all.toTypedArray())))
+        assertEquals(576, r.stills.size)
+        assertEquals(0, r.skipped)
     }
 
     @Test
@@ -147,30 +150,26 @@ class StillsTest {
     }
 
     @Test
-    fun `within a festival window the designs of the current sun variant rotate once each per cycle`() {
-        val nightPool = listOf(1, 2, 3).toSet()
-        val seen = (0L until 3L).map { diwali[StillPools.pick(diwali, "diwali", night = true, slot = it)!!] }
-        assertEquals(nightPool, seen.map { it.index }.toSet())
-        assertTrue(seen.all { it.night })
-        val day = (0L until 2L).map { diwali[StillPools.pick(diwali, "diwali", night = false, slot = it)!!] }
-        assertTrue(day.all { !it.night })
-        assertEquals(setOf(1, 2), day.map { it.index }.toSet())
+    fun `within a festival window every design rotates once per cycle, day and night paintings alike, at any hour`() {
+        val all = StillPools.designsOf(diwali, "diwali").toSet()
+        val seen = (0L until all.size.toLong()).map { StillPools.pick(diwali, "diwali", slot = it)!! }
+        assertEquals("one cycle shows each of the 5 Diwali designs exactly once", all, seen.toSet())
+        assertEquals(all.size, seen.size)
+        assertTrue("both day and night paintings appear", seen.any { diwali[it].night } && seen.any { !diwali[it].night })
     }
 
     @Test
     fun `the pick is deterministic per slot and changes between slots`() {
-        for (slot in listOf(0L, 7L, 12345L)) assertEquals(StillPools.pick(diwali, "diwali", true, slot), StillPools.pick(diwali, "diwali", true, slot))
-        assertTrue((0L until 12L).map { StillPools.pick(diwali, "diwali", true, it) }.toSet().size > 1)
+        for (slot in listOf(0L, 7L, 12345L)) assertEquals(StillPools.pick(diwali, "diwali", slot), StillPools.pick(diwali, "diwali", slot))
+        assertTrue((0L until 12L).map { StillPools.pick(diwali, "diwali", it) }.toSet().size > 1)
     }
 
     @Test
-    fun `a theme with no design for the current variant falls back to the other variant, and with none at all to null`() {
+    fun `a theme with no paintings at all falls back to the procedural scene`() {
         val onlyNight = listOf(e("lohri", true, 1), e("lohri", true, 2))
-        val dayPick = StillPools.pick(onlyNight, "lohri", night = false, slot = 4)
-        assertNotNull(dayPick)
-        assertTrue(onlyNight[dayPick!!].night)
-        assertNull("no paintings for the theme means the procedural scene", StillPools.pick(onlyNight, "holi", night = true, slot = 4))
-        assertNull(StillPools.pick(emptyList(), "diwali", false, 0))
+        assertNotNull(StillPools.pick(onlyNight, "lohri", slot = 4))
+        assertNull("no paintings for the theme means the procedural scene", StillPools.pick(onlyNight, "holi", slot = 4))
+        assertNull(StillPools.pick(emptyList(), "diwali", 0))
     }
 
     @Test

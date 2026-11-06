@@ -20,7 +20,7 @@ sealed interface StillManifestResult {
 
 /** Parses scenes/scenes.json (version 2, with version 1 accepted) with the same distrust as photos.json: it sits on shared-writable storage. */
 object StillManifest {
-    const val MAX_ENTRIES = 256
+    const val MAX_ENTRIES = 576 // every slot: 24 themes x day/night x MAX_INDEX designs (StillsTest keeps these in step)
     const val MAX_BYTES = 128 * 1024L
     const val MAX_INDEX = 12 // designs per theme and sun state; more designs = more variety in the 30-minute rotation
 
@@ -130,12 +130,13 @@ object StillPools {
         stills.indices.filter { stills[it].theme == theme }.sortedWith(compareBy({ stills[it].index }, { stills[it].night }))
 
     /**
-     * The design for this 30-minute [slot]: matching the sun state ([night]); if the theme has none of that kind, the other kind; null when the
-     * theme has no paintings at all (the caller then uses the procedural scene). Deterministic, and every design is shown once per cycle.
+     * The design for this 30-minute [slot], drawn from ALL of the theme's designs, day and night alike (the owner wants every festival
+     * painting in the rotation at any hour; the UI's light/dark mode follows each painting's own brightness). Null when the theme has no
+     * paintings (the caller then uses the procedural scene). Deterministic, and every design is shown once per cycle.
      */
-    fun pick(stills: List<StillEntry>, theme: String, night: Boolean, slot: Long): Int? {
+    fun pick(stills: List<StillEntry>, theme: String, slot: Long): Int? {
         val designs = designsOf(stills, theme)
-        val i = WallpaperPicker.pickPhotoIndex(designs.map { stills[it].night }, night, slot) ?: return null
+        val i = WallpaperPicker.pickPhotoIndex(List(designs.size) { false }, false, slot) ?: return null
         return designs[i]
     }
 }
