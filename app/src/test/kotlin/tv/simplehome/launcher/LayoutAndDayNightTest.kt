@@ -15,6 +15,13 @@ class LayoutAndDayNightTest {
     }
 
     @Test
+    fun `the quote sits low, just above the dock, yet even a 4-line quote stays clear of a full festival banner`() {
+        val dockTop = LayoutBudget.SAFE_TOP_BOTTOM_DP + LayoutBudget.SAFE_HEIGHT_DP - LayoutBudget.DOCK_DP
+        assertEquals(dockTop - LayoutBudget.QUOTE_DOCK_GAP_DP, LayoutBudget.QUOTE_BOTTOM_DP, 0.01f)
+        assertTrue("quote top ${LayoutBudget.QUOTE_TOP_DP} vs header end ${LayoutBudget.HEADER_END_DP}", LayoutBudget.QUOTE_TOP_DP >= LayoutBudget.HEADER_END_DP)
+    }
+
+    @Test
     fun `without a banner the centre only grows, so collapsing the banner can never clip the quote`() {
         assertTrue(LayoutBudget.centerDp(false) > LayoutBudget.centerDp(true))
         assertTrue(LayoutBudget.centerDp(true) >= LayoutBudget.QUOTE_MIN_DP)

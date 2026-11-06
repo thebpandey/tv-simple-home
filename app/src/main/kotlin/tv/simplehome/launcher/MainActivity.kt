@@ -126,6 +126,7 @@ class MainActivity : Activity() {
     private lateinit var festivalBanner: LinearLayout
     private val quoteTexts = ArrayList<TextView>() // home footer and All apps footer show the same quote
     private val quoteAuthors = ArrayList<TextView>()
+    private val quoteBlocks = ArrayList<QuoteRevealLayout>()
     private var shownQuote: Quote? = null
     private val themed = ArrayList<() -> Unit>() // re-colours static views when the day/night UI mode flips
     private var dayNightMode = DayNightMode.AUTO
@@ -374,7 +375,9 @@ class MainActivity : Activity() {
         val center = FrameLayout(this).apply {
             clipChildren = false
             minimumHeight = dp(LayoutBudget.QUOTE_MIN_DP)
-            addView(buildQuoteBlock(), FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
+            addView(buildQuoteBlock(), FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply {
+                bottomMargin = dp(LayoutBudget.QUOTE_DOCK_GAP_DP)
+            })
         }
         homeColumn = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -678,17 +681,15 @@ class MainActivity : Activity() {
             text.setShadowLayer(dp(3).toFloat(), 0f, dp(1).toFloat(), Palette.shadow)
             author.setShadowLayer(dp(3).toFloat(), 0f, dp(1).toFloat(), Palette.shadow)
         }
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+        return QuoteRevealLayout(this, text, author).apply {
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding(0, dp(2), 0, dp(10))
             isFocusable = false
-            addView(text, LinearLayout.LayoutParams(-2, -2))
-            addView(author, LinearLayout.LayoutParams(-2, -2))
+            quoteBlocks.add(this)
         }
     }
 
-    /** Shows the quote for the current 15-minute slot (400ms alpha crossfade when it changes) and schedules the next slot. */
+    /** Shows the quote for the current 2-minute slot (written in left to right when it changes) and schedules the next slot. */
     private fun updateQuote() {
         updateFestival()
         val now = java.time.LocalDateTime.now()
@@ -726,21 +727,10 @@ class MainActivity : Activity() {
     }
 
     private fun setQuoteText(text: TextView, author: TextView, quote: Quote, animate: Boolean) {
-        // The swap happens while both lines are fully faded out, so the centre re-centring to the new block height is never seen.
-        val apply = { applyQuote(text, author, quote) }
-        if (!animate) { apply(); return }
-        // Gentle, together: fade out 1.2s (ease-in-out); swap the text while invisible (the centre keeps the quote
-        // vertically centred, so nothing visibly jumps); fade in 1.2s with a 6dp upward drift.
-        val ease = android.view.animation.AccelerateDecelerateInterpolator()
-        val drift = dp(6).toFloat()
-        text.animate().cancel(); author.animate().cancel()
-        author.animate().alpha(0f).setDuration(1200).setInterpolator(ease).start()
-        text.animate().alpha(0f).setDuration(1200).setInterpolator(ease).withEndAction {
-            apply()
-            text.translationY = drift; author.translationY = drift
-            text.animate().alpha(1f).translationY(0f).setDuration(1200).setInterpolator(ease).start()
-            author.animate().alpha(1f).translationY(0f).setDuration(1200).setInterpolator(ease).start()
-        }.start()
+        val block = quoteBlocks[quoteTexts.indexOf(text)]
+        // The old quote is wiped out left to right, swapped while nothing shows, and the new one is written in left to right.
+        if (animate) block.replace { applyQuote(text, author, quote) }
+        else { applyQuote(text, author, quote); block.write() }
     }
 
     /** One quiet palette for day and evening quotes (the warm evening tint was dropped with the italic serif). */
@@ -1468,7 +1458,11 @@ class MainActivity : Activity() {
         val items = ArrayList<PanelItem>()
         items += PanelItem.Header("SCENE")
         items += PanelItem.Option("Auto-rotate (every 30 min)", OptionKind.RADIO, { currentWallpaperMode() == WallpaperMode.Auto }) { setWallpaperMode(WallpaperMode.Auto) }
+        // With "Animated scenes" switched off the drawn scenes are a silent fallback only, so they are not offered for pinning either
+        // (a scene that is already pinned stays listed so the current choice is visible).
+        val scenesOn = currentSources().scenes
         WallpaperSchedule.SCENE_NAMES.forEachIndexed { i, name ->
+            if (!scenesOn && currentWallpaperMode() != WallpaperMode.Pinned(i)) return@forEachIndexed
             items += PanelItem.Option(name, OptionKind.RADIO, { currentWallpaperMode() == WallpaperMode.Pinned(i) }) { setWallpaperMode(WallpaperMode.Pinned(i)) }
         }
         items += PanelItem.Option("Photos (auto-rotate)", OptionKind.RADIO, { currentWallpaperMode() == WallpaperMode.Photos }) { setWallpaperMode(WallpaperMode.Photos) }

@@ -24,9 +24,9 @@ object Quotes {
     const val MAX_LENGTH = 160 // 3 lines of 23sp at 60% of the width hold about 170 characters
     const val EVENING_START_HOUR = 18
     const val MIN_PER_THEME = 10
-    const val SLOT_MINUTES = 5
-    const val SLOTS_PER_DAY = 24 * 60 / SLOT_MINUTES // 288
-    private const val EVENING_START_SLOT = EVENING_START_HOUR * 60 / SLOT_MINUTES // 216 day slots, then 72 evening slots
+    const val SLOT_MINUTES = 2
+    const val SLOTS_PER_DAY = 24 * 60 / SLOT_MINUTES // 720
+    private const val EVENING_START_SLOT = EVENING_START_HOUR * 60 / SLOT_MINUTES // 540 day slots, then 180 evening slots
     private const val EVENING_SLOTS = SLOTS_PER_DAY - EVENING_START_SLOT
 
     val DAY_THEMES = listOf(
@@ -42,11 +42,11 @@ object Quotes {
     fun setAt(now: LocalDateTime): QuoteSet =
         if (now.hour >= EVENING_START_HOUR) QuoteSet.EVENING else QuoteSet.DAY
 
-    /** 0..287: which 5-minute slot of the local day [now] falls in. */
+    /** 0..719: which 2-minute slot of the local day [now] falls in. */
     fun slotOf(now: LocalDateTime): Int = (now.hour * 60 + now.minute) / SLOT_MINUTES
 
     /**
-     * Quote for the 5-minute slot containing [now]: a pure function of (set, local date, slot), so the same slot gives the
+     * Quote for the 2-minute slot containing [now]: a pure function of (set, local date, slot), so the same slot gives the
      * same quote after a restart. Each set advances through one continuous counter (only that set's slots, across days);
      * counter / poolSize is the cycle number and counter % poolSize the position inside that cycle. Every cycle is a
      * deterministic shuffle, so each quote appears exactly once per cycle before any repeats, and a quote is never shown
@@ -74,7 +74,7 @@ object Quotes {
         return order
     }
 
-    /** Next moment the displayed quote can change: the next 5-minute boundary (which includes 18:00 and midnight). */
+    /** Next moment the displayed quote can change: the next 2-minute boundary (which includes 18:00 and midnight). */
     fun nextBoundary(now: LocalDateTime): LocalDateTime =
         now.toLocalDate().atStartOfDay().plusMinutes((slotOf(now) + 1L) * SLOT_MINUTES)
 
@@ -99,7 +99,7 @@ object Quotes {
     // Wording of translated works follows common English translations, so phrasing varies by translator.
 
     // Motivation, inspiration, positivity, strength, resilience, confidence, determination, winning attitude.
-    val DAY: List<Quote> by lazy { CURATED_DAY + QuotesExtra.DAY }
+    val DAY: List<Quote> by lazy { CURATED_DAY + QuotesExtra.DAY + QuotesLeaders.DAY }
 
     private val CURATED_DAY: List<Quote> = listOf(
         Quote("Waste no more time arguing about what a good man should be. Be one.", "Marcus Aurelius", Theme.MOTIVATION, "Meditations 10.16"),
@@ -290,7 +290,7 @@ object Quotes {
     )
 
     // Peace, meditation, healing, relaxation, self-actualization, bliss, gratitude, happiness.
-    val EVENING: List<Quote> by lazy { CURATED_EVENING + QuotesExtra.EVENING }
+    val EVENING: List<Quote> by lazy { CURATED_EVENING + QuotesExtra.EVENING + QuotesLeaders.EVENING }
 
     private val CURATED_EVENING: List<Quote> = listOf(
         Quote("He who knows he has enough is rich.", "Tao Te Ching", Theme.BLISS, "Tao Te Ching 33"),

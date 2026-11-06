@@ -20,7 +20,9 @@ object ScrimSpec {
 
     // Quote veil on the 960dp-wide layout: a rounded rectangle (superellipse, n = 4) centred on the quote box, at least 90% strength over
     // the widest quote column (64% of the width) and the tallest block, then a smoothstep to nothing at the rim, which stays above the shelf.
-    val QUOTE_CY_DP = (LayoutBudget.QUOTE_TOP_DP + LayoutBudget.QUOTE_BOTTOM_DP) / 2f
+    // Centred on the free centre rather than on the low-anchored quote box: the 60% plateau (+-95dp) still spans every quote position, and
+    // the rim stays above the dock shelf.
+    val QUOTE_CY_DP = LayoutBudget.HEADER_END_DP + LayoutBudget.centerDp(true) / 2f
     const val QUOTE_PLATEAU = 0.6f
     const val QUOTE_RX_DP = 560f
     const val QUOTE_RY_DP = 158f

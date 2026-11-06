@@ -4,7 +4,7 @@ package tv.simplehome.launcher
  * 540dp-tall screen layout budget, as a pure function so it can be checked in a unit test.
  * Safe area: 27dp top and bottom (486dp of content), 48dp left and right.
  *
- * Home, top to bottom: FIXED header (top bar + optional banner) / flexible CENTER holding the quote, centred both ways /
+ * Home, top to bottom: FIXED header (top bar + optional banner) / flexible CENTER holding the quote, centred across, at its bottom /
  * FIXED dock anchored to the bottom safe edge (menu button, divider, magnifying favorites).
  */
 object LayoutBudget {
@@ -76,8 +76,11 @@ object LayoutBudget {
     // Fixed screen positions (dp from the top) of the content the scrim has to protect.
     val SCRIM_HEADER_END_DP = SAFE_TOP_BOTTOM_DP + header(true) // 175: the top scrim holds its full strength through the whole header, banner lines included
     val HEADER_END_DP = SAFE_TOP_BOTTOM_DP + header(true) // 151
-    val QUOTE_TOP_DP = HEADER_END_DP + (centerDp(true) - QUOTE_MIN_DP) / 2f // top of the quote box, centred in the free centre
-    val QUOTE_BOTTOM_DP = QUOTE_TOP_DP + QUOTE_MIN_DP
+    // The quote sits at the bottom of the free centre, just above the dock's label row, so the festival banner keeps clear air
+    // under it instead of crowding the quote. QUOTE_TOP/BOTTOM bound the worst-case (4-line) block.
+    const val QUOTE_DOCK_GAP_DP = 8
+    val QUOTE_BOTTOM_DP = HEADER_END_DP + centerDp(true) - QUOTE_DOCK_GAP_DP
+    val QUOTE_TOP_DP = QUOTE_BOTTOM_DP - QUOTE_MIN_DP
 }
 
 enum class DockStyle(val id: String, val label: String) {

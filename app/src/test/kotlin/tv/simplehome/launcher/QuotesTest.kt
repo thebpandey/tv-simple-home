@@ -27,9 +27,9 @@ class QuotesTest {
     }
 
     @Test
-    fun `anywhere inside one 5 minute slot gives the same quote, so a restart mid-slot shows what was on screen`() {
-        for (minute in 0 until 5) assertSame(Quotes.quoteAt(at(9, 30)), Quotes.quoteAt(at(9, 30 + minute)))
-        assertSame(Quotes.quoteAt(at(9, 45)), Quotes.quoteAt(at(9, 49)))
+    fun `anywhere inside one 2 minute slot gives the same quote, so a restart mid-slot shows what was on screen`() {
+        for (minute in 0 until 2) assertSame(Quotes.quoteAt(at(9, 30)), Quotes.quoteAt(at(9, 30 + minute)))
+        assertSame(Quotes.quoteAt(at(9, 44)), Quotes.quoteAt(LocalDateTime.of(2026, 3, 14, 9, 45, 59)))
     }
 
     @Test
@@ -38,17 +38,17 @@ class QuotesTest {
     }
 
     @Test
-    fun `the next slot shows a different quote so the quote rotates every 5 minutes`() {
+    fun `the next slot shows a different quote so the quote rotates every 2 minutes`() {
         for (s in 0 until Quotes.SLOTS_PER_DAY - 1) {
-            val a = day.atStartOfDay().plusMinutes(s * 5L)
-            if (Quotes.setAt(a) == Quotes.setAt(a.plusMinutes(5))) assertNotEquals(Quotes.quoteAt(a), Quotes.quoteAt(a.plusMinutes(5)))
+            val a = day.atStartOfDay().plusMinutes(s * 2L)
+            if (Quotes.setAt(a) == Quotes.setAt(a.plusMinutes(2))) assertNotEquals(Quotes.quoteAt(a), Quotes.quoteAt(a.plusMinutes(2)))
         }
     }
 
     @Test
-    fun `the day set has 216 slots and the evening set 72`() {
-        assertEquals(288, Quotes.SLOTS_PER_DAY)
-        assertEquals(216, (0 until 288).count { Quotes.setAt(day.atStartOfDay().plusMinutes(it * 5L)) == QuoteSet.DAY })
+    fun `the day set has 540 slots and the evening set 180`() {
+        assertEquals(720, Quotes.SLOTS_PER_DAY)
+        assertEquals(540, (0 until 720).count { Quotes.setAt(day.atStartOfDay().plusMinutes(it * 2L)) == QuoteSet.DAY })
     }
 
     @Test
@@ -58,7 +58,7 @@ class QuotesTest {
         val seen = HashSet<Quote>()
         var d = day.atStartOfDay()
         var shown = 0
-        val start = Math.floorMod(day.toEpochDay() * 216, n.toLong()).toInt()
+        val start = Math.floorMod(day.toEpochDay() * 540, n.toLong()).toInt()
         // Advance until the next cycle start, then collect n consecutive day slots.
         var skip = (n - start) % n
         while (skip > 0) { d = nextDaySlot(d); skip-- }
@@ -67,8 +67,8 @@ class QuotesTest {
     }
 
     private fun nextDaySlot(from: LocalDateTime): LocalDateTime {
-        var x = from.plusMinutes(5)
-        while (Quotes.setAt(x) != QuoteSet.DAY) x = x.plusMinutes(5)
+        var x = from.plusMinutes(2)
+        while (Quotes.setAt(x) != QuoteSet.DAY) x = x.plusMinutes(2)
         return x
     }
 
@@ -85,24 +85,24 @@ class QuotesTest {
     }
 
     @Test
-    fun `an evening shows no repeats unless it straddles a cycle boundary, because 72 slots fit in the 117 quote pool`() {
-        // The evening's 72 slots are consecutive positions of one continuous cycle; a repeat is only possible when
+    fun `an evening shows no repeats unless it straddles a cycle boundary, because its 180 slots fit in the evening pool`() {
+        // The evening's 180 slots are consecutive positions of one continuous cycle; a repeat is only possible when
         // the cycle restarts in the middle of the evening (quote X at the end of cycle k, again early in cycle k+1).
         val n = Quotes.EVENING.size.toLong()
         var clean = 0
         for (offset in 0L until 120L) {
             val d = day.plusDays(offset)
-            val shown = (0 until 72).map { Quotes.quoteAt(d.atTime(18, 0).plusMinutes(it * 5L)) }
-            val start = d.toEpochDay() * 72
-            val straddles = Math.floorDiv(start, n) != Math.floorDiv(start + 71, n)
-            if (!straddles) { assertEquals("evening $d", 72, shown.toSet().size); clean++ }
+            val shown = (0 until 180).map { Quotes.quoteAt(d.atTime(18, 0).plusMinutes(it * 2L)) }
+            val start = d.toEpochDay() * 180
+            val straddles = Math.floorDiv(start, n) != Math.floorDiv(start + 179, n)
+            if (!straddles) { assertEquals("evening $d", 180, shown.toSet().size); clean++ }
         }
-        assertTrue("most evenings are clean", clean > 40)
+        assertTrue("some evenings are clean ($clean)", clean > 5)
     }
 
     @Test
     fun `the day sequence continues across midnight instead of restarting, so late and early quotes differ`() {
-        val last = Quotes.quoteAt(day.atTime(17, 55))
+        val last = Quotes.quoteAt(day.atTime(17, 58))
         val first = Quotes.quoteAt(day.plusDays(1).atStartOfDay())
         assertNotEquals(last, first)
     }
@@ -123,17 +123,17 @@ class QuotesTest {
     }
 
     @Test
-    fun `next boundary is the next 5 minutes, which includes exactly 18_00 and midnight`() {
-        assertEquals(at(9, 5), Quotes.nextBoundary(at(9, 0)))
-        assertEquals(at(9, 15), Quotes.nextBoundary(at(9, 14)))
+    fun `next boundary is the next 2 minutes, which includes exactly 18_00 and midnight`() {
+        assertEquals(at(9, 2), Quotes.nextBoundary(at(9, 0)))
+        assertEquals(at(9, 16), Quotes.nextBoundary(at(9, 14)))
         assertEquals(at(18, 0), Quotes.nextBoundary(at(17, 59)))
         assertEquals(day.plusDays(1).atStartOfDay(), Quotes.nextBoundary(at(23, 59)))
     }
 
     @Test
     fun `each pool is large enough for a whole window without wrapping`() {
-        assertTrue(Quotes.DAY.size >= 216)
-        assertTrue(Quotes.EVENING.size >= 72)
+        assertTrue("day pool ${Quotes.DAY.size}", Quotes.DAY.size >= 540)
+        assertTrue("evening pool ${Quotes.EVENING.size}", Quotes.EVENING.size >= 180)
     }
 
     @Test
@@ -184,6 +184,8 @@ class QuotesTest {
     fun `the merged collection is all there with its new themes`() {
         assertTrue(Quotes.DAY.size >= 440)
         assertTrue(Quotes.EVENING.size >= 225)
+        // The owner asked for over 1000 quotes (2026-11-06) so the 2-minute rotation stays fresh for days.
+        assertTrue("total ${Quotes.DAY.size + Quotes.EVENING.size}", Quotes.DAY.size + Quotes.EVENING.size > 1000)
         assertTrue(Quotes.DAY.any { it.theme == Theme.VIRTUE } && Quotes.DAY.any { it.theme == Theme.INTEGRITY } && Quotes.DAY.any { it.theme == Theme.WISDOM })
         assertTrue(Quotes.EVENING.any { it.theme == Theme.LOVE })
     }
@@ -199,7 +201,7 @@ class QuotesTest {
 
     @Test
     fun `a whole day cycle now spans more than one day, yet each quote still appears once per cycle`() {
-        // 448 quotes against 216 day slots: a cycle lasts a little over two days; the shuffle must still be a permutation.
+        // The shuffle of one whole cycle must be a permutation of the pool.
         val order = Quotes.cycleOrder(Quotes.DAY.size, QuoteSet.DAY, 3)
         assertEquals((0 until Quotes.DAY.size).toList(), order.sorted())
     }
